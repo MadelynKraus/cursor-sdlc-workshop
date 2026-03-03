@@ -47,7 +47,7 @@ const Slide07Phase1Plan = () => (
               <code>
                 <span className="comment">Ask Cursor:</span>
                 <br />
-                "Create a project folder for me at projects/[my-github-username]"
+                "Create a project folder for me at projects/[my-github-username] using the project template"
               </code>
             </div>
           </div>

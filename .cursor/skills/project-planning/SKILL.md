@@ -1,6 +1,6 @@
 ---
 name: project-planning
-description: Guides project planning and code generation for the SDLC workshop. Enforces frontend-only React apps, recommends stubbing over real backends, and ensures projects stay small. Use when planning a project, generating a PRD, scaffolding an MVP, or when the user asks what to build.
+description: Guides project planning and code generation for the SDLC workshop. Enforces frontend-only React apps, recommends stubbing over real backends, and ensures projects stay small. When to use: planning a project, generating a PRD, scaffolding an MVP, or when the user asks what to build.
 ---
 
 # Project Planning (SDLC Workshop)
