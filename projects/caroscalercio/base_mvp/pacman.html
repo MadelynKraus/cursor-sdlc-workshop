@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursor-Man</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a12;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+    h1 {
+      margin-bottom: 8px;
+      font-size: 1.5rem;
+      color: #ffd93d;
+    }
+    #game-wrap {
+      display: inline-block;
+      border: 3px solid #ffd93d;
+      border-radius: 4px;
+      transform: scale(2);
+      transform-origin: center center;
+    }
+    #game {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+    }
+    p { margin-top: 8px; font-size: 0.9rem; color: #888; }
+  </style>
+</head>
+<body>
+  <h1>CURSOR-MAN</h1>
+  <div id="game-wrap">
+    <canvas id="game" width="280" height="320" tabindex="0"></canvas>
+  </div>
+  <p>Click the game, then use Arrow keys or WASD · Collect all dots · Avoid ghosts</p>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const T = 16;
+      const COLS = Math.floor(280 / T);
+      const ROWS = Math.floor(320 / T);
+
+      const WALL = 1;
+      const DOT = 2;
+      const EMPTY = 0;
+
+      let maze = [];
+      let dotsLeft = 0;
+      let pac = { x: 1, y: 1, dir: 0, mouth: 0 };
+      let ghosts = [];
+      let score = 0;
+      let gameOver = false;
+      let won = false;
+      let started = false;
+      let dotSprite = null;
+      let pacSprite = null;
+
+      const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+
+      function makeBlackTransparent(img, darkThreshold) {
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        const cx = c.getContext('2d');
+        cx.drawImage(img, 0, 0);
+        try {
+          const d = cx.getImageData(0, 0, c.width, c.height);
+          const data = d.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            if (r <= darkThreshold && g <= darkThreshold && b <= darkThreshold) {
+              data[i + 3] = 0;
+            }
+          }
+          cx.putImageData(d, 0, 0);
+        } catch (e) {
+          cx.drawImage(img, 0, 0);
+        }
+        return c;
+      }
+
+      function makeBackgroundTransparent(img, grayThreshold) {
+        const c = document.createElement('canvas');
+        c.width = img.width;
+        c.height = img.height;
+        const cx = c.getContext('2d');
+        cx.drawImage(img, 0, 0);
+        try {
+          const d = cx.getImageData(0, 0, c.width, c.height);
+          const data = d.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const avg = (r + g + b) / 3;
+            const isGray = Math.abs(r - avg) < 20 && Math.abs(g - avg) < 20 && Math.abs(b - avg) < 20;
+            if (isGray && avg > grayThreshold) data[i + 3] = 0;
+          }
+          cx.putImageData(d, 0, 0);
+        } catch (e) {
+          cx.drawImage(img, 0, 0);
+        }
+        return c;
+      }
+
+      const dotImg = new Image();
+      dotImg.onload = function () {
+        dotSprite = makeBackgroundTransparent(dotImg, 95);
+      };
+      dotImg.onerror = function () {
+        console.warn('dot-icon.png not found – using yellow dots. Serve from a local server (e.g. python3 -m http.server 8000) if using assets.');
+      };
+      dotImg.src = 'dot-icon.png';
+
+      const pacImg = new Image();
+      pacImg.onload = function () {
+        pacSprite = makeBlackTransparent(pacImg, 85);
+      };
+      pacImg.onerror = function () {
+        console.warn('cursor-logo.png not found – using default Pac-Man.');
+      };
+      pacImg.src = 'cursor-logo.png';
+
+      canvas.addEventListener('click', function () {
+        canvas.focus();
+        started = true;
+      });
+
+      function buildMaze() {
+        maze = [];
+        for (let y = 0; y < ROWS; y++) {
+          maze[y] = [];
+          for (let x = 0; x < COLS; x++) {
+            if (x === 0 || x === COLS - 1 || y === 0 || y === ROWS - 1) {
+              maze[y][x] = WALL;
+            } else if ((x % 2 === 0 && y % 2 === 0) || (x === 2 && y === 2) || (x === COLS - 3 && y === 2)) {
+              maze[y][x] = WALL;
+            } else {
+              maze[y][x] = DOT;
+              dotsLeft++;
+            }
+          }
+        }
+        maze[1][1] = EMPTY;
+        dotsLeft--;
+        for (let y = 0; y < ROWS; y++) {
+          for (let x = 0; x < COLS; x++) {
+            if (maze[y][x] === DOT && (x === 1 || x === COLS - 2) && (y === 1 || y === ROWS - 2)) maze[y][x] = EMPTY;
+          }
+        }
+        dotsLeft = 0;
+        for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (maze[y][x] === DOT) dotsLeft++;
+        ghosts = [
+          { x: COLS - 2, y: 1, dx: -1, dy: 0 },
+          { x: 1, y: ROWS - 2, dx: 1, dy: 0 }
+        ];
+      }
+
+      function movePac() {
+        const d = dirs[pac.dir];
+        const nx = pac.x + d[0];
+        const ny = pac.y + d[1];
+        if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && maze[ny][nx] !== WALL) {
+          pac.x = nx;
+          pac.y = ny;
+          if (maze[ny][nx] === DOT) {
+            maze[ny][nx] = EMPTY;
+            dotsLeft--;
+            score += 10;
+          }
+        }
+        pac.mouth = (pac.mouth + 0.3) % 1;
+      }
+
+      function moveGhost(g) {
+        const choices = [];
+        for (let i = 0; i < 4; i++) {
+          const d = dirs[i];
+          const nx = g.x + d[0];
+          const ny = g.y + d[1];
+          if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && maze[ny][nx] !== WALL) {
+            choices.push({ dx: d[0], dy: d[1], nx, ny });
+          }
+        }
+        if (choices.length) {
+          const c = choices[Math.floor(Math.random() * choices.length)];
+          g.x = c.nx;
+          g.y = c.ny;
+          g.dx = c.dx;
+          g.dy = c.dy;
+        }
+      }
+
+      function draw() {
+        ctx.fillStyle = '#0a0a12';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let y = 0; y < ROWS; y++) {
+          for (let x = 0; x < COLS; x++) {
+            const cell = maze[y][x];
+            if (cell === WALL) {
+              ctx.fillStyle = '#1a3a5c';
+              ctx.fillRect(x * T, y * T, T, T);
+              ctx.strokeStyle = '#2a5a8c';
+              ctx.strokeRect(x * T, y * T, T, T);
+            } else if (cell === DOT) {
+              if (dotSprite) {
+                const size = T - 2;
+                const sx = x * T + (T - size) / 2;
+                const sy = y * T + (T - size) / 2;
+                ctx.drawImage(dotSprite, 0, 0, dotSprite.width, dotSprite.height, sx, sy, size, size);
+              } else {
+                ctx.fillStyle = '#ffd93d';
+                ctx.beginPath();
+                ctx.arc(x * T + T / 2, y * T + T / 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        }
+
+        const px = pac.x * T + T / 2;
+        const py = pac.y * T + T / 2;
+        if (pacSprite) {
+          const size = T - 2;
+          const angle = [0, -0.5 * Math.PI, Math.PI, 0.5 * Math.PI][pac.dir];
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(angle);
+          ctx.drawImage(pacSprite, 0, 0, pacSprite.width, pacSprite.height, -size / 2, -size / 2, size, size);
+          ctx.restore();
+        } else {
+          const open = 0.2 + 0.3 * Math.sin(pac.mouth * Math.PI * 2);
+          ctx.fillStyle = '#ffd93d';
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.arc(px, py, T / 2 - 1, open * Math.PI, (2 - open) * Math.PI);
+          ctx.lineTo(px, py);
+          ctx.fill();
+          ctx.fillStyle = '#0a0a12';
+          ctx.beginPath();
+          ctx.arc(px + (pac.dir === 1 ? 3 : pac.dir === 3 ? -3 : 0), py + (pac.dir === 0 ? -3 : pac.dir === 2 ? 3 : 0), 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ghosts.forEach(g => {
+          ctx.fillStyle = '#ff2d6a';
+          ctx.beginPath();
+          ctx.arc(g.x * T + T / 2, g.y * T + T / 2, T / 2 - 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.beginPath();
+          ctx.arc(g.x * T + T / 2 - 3, g.y * T + T / 2 - 2, 2, 0, Math.PI * 2);
+          ctx.arc(g.x * T + T / 2 + 3, g.y * T + T / 2 - 2, 2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px monospace';
+        ctx.fillText('Score: ' + score, 8, canvas.height - 4);
+
+        if (!started) {
+          ctx.fillStyle = 'rgba(0,0,0,0.75)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#ffd93d';
+          ctx.font = 'bold 18px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Click here, then use', canvas.width / 2, canvas.height / 2 - 12);
+          ctx.fillText('Arrow keys or WASD', canvas.width / 2, canvas.height / 2 + 14);
+          ctx.textAlign = 'left';
+          return;
+        }
+        if (gameOver) {
+          ctx.fillStyle = 'rgba(0,0,0,0.7)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 24px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(won ? 'YOU WIN!' : 'GAME OVER', canvas.width / 2, canvas.height / 2);
+          ctx.font = '16px sans-serif';
+          ctx.fillText('Score: ' + score, canvas.width / 2, canvas.height / 2 + 28);
+          ctx.textAlign = 'left';
+          return;
+        }
+        if (dotsLeft === 0) {
+          won = true;
+          gameOver = true;
+        }
+      }
+
+      let last = 0;
+      let acc = 0;
+      const TICK_MS = 120;
+      function loop(now) {
+        if (gameOver || !started) {
+          draw();
+          requestAnimationFrame(loop);
+          return;
+        }
+        if (last > 0) acc += now - last;
+        last = now;
+        while (acc >= TICK_MS) {
+          acc -= TICK_MS;
+          movePac();
+          ghosts.forEach(moveGhost);
+          ghosts.forEach(g => {
+            if (g.x === pac.x && g.y === pac.y) gameOver = true;
+          });
+        }
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      document.addEventListener('keydown', function (e) {
+        const k = e.key;
+        if (k === 'ArrowUp' || k === 'w' || k === 'W') { e.preventDefault(); started = true; pac.dir = 0; }
+        else if (k === 'ArrowRight' || k === 'd' || k === 'D') { e.preventDefault(); started = true; pac.dir = 1; }
+        else if (k === 'ArrowDown' || k === 's' || k === 'S') { e.preventDefault(); started = true; pac.dir = 2; }
+        else if (k === 'ArrowLeft' || k === 'a' || k === 'A') { e.preventDefault(); started = true; pac.dir = 3; }
+      });
+
+      buildMaze();
+      canvas.focus();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
