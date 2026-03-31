@@ -8,7 +8,7 @@
 
 **Project Name:** Plot — Garden Tracker
 
-**One-line Description:** A single-page web app to remind the user what they need to do on a monthly/weekly basis to manager the plants in the garden.
+**One-line Description:** A single-page web app to remind the user what they need to do on a monthly/weekly basis to manage the plants in the garden.
 
 **Type:** Web App (React, single screen)
 
@@ -61,17 +61,19 @@
 
 **What the MVP includes:**
 
-- One page showing a **list of plants** (each row/card: name + optional short note, e.g. “herb bed” or “full sun”).
-- **Add plant** — simple form: plant name (required), optional note; submit adds it to the list.
-- **Remove plant** — button per row to delete from the list.
-- All data lives in **React state only** (resets on refresh) so there’s no server, auth, or database.
+- One page focused on **garden care reminders** (not a generic plant inventory).
+- **Add reminder** — short title (what to do), **cadence** weekly (every 7 days) or monthly (every **30** days for this MVP), optional **last done** date; if never done, the task is treated as **due now**.
+- **Next due** is computed from last done + cadence; **“Due this week”** lists anything **overdue** or due on or before **end of Sunday** of the current calendar week.
+- **All reminders** — full list **sorted by next due date**, with **Mark done today** (sets last done to today and moves the next due forward) and **Remove**.
+- Data is stored in **`localStorage`** in this browser only (no server, auth, or database).
 
 **What it does NOT include (stretch goals):**
 
 - User accounts, login, or cloud sync
 - Separate routes or multiple screens
-- Weather API, plant ID API, or image uploads
+- Weather API, plant ID API, push notifications, or image uploads
 - A real database (Postgres, Firebase, etc.)
+- Calendar-accurate “month” lengths (MVP uses **+30 days** for monthly cadence)
 
 ---
 
@@ -79,20 +81,20 @@
 
 > Plan out the features you want to add after the MVP is working. Each feature should be in its own component file to keep things organized.
 
-### Feature 1: Last watered
+### Feature 1: Filter / search
 
-- **Description:** Each plant shows a “Last watered” date (or “Mark watered today” button) so you can track care at a glance.
-- **Files to create:** e.g. `PlantRow.jsx` (or extend existing row component), optional `wateringUtils.js` for date formatting.
+- **Description:** Text filter to narrow “All reminders” by title.
+- **Files to create:** e.g. `ReminderFilter.jsx`
 
-### Feature 2: Filter / search
+### Feature 2: Per-plant grouping
 
-- **Description:** Text filter to show only plants whose name or note matches what you type.
-- **Files to create:** e.g. `PlantFilter.jsx`
+- **Description:** Optional “plant name” field so multiple reminders can be grouped visually under the same plant.
+- **Files to create:** e.g. extend `ReminderForm.jsx`, `ReminderRow.jsx`
 
-### Feature 3: Persist with localStorage
+### Feature 3: Export / import JSON
 
-- **Description:** Save the plant list in `localStorage` so a browser refresh doesn’t clear the garden (still no server—acceptable for this workshop).
-- **Files to create:** e.g. `useGardenStorage.js` (custom hook) or `gardenStorage.js`
+- **Description:** Download reminders as a file and load them back (still client-only).
+- **Files to create:** e.g. `backupUtils.js`, small UI in `App.jsx`
 
 ---
 
@@ -101,4 +103,3 @@
 - MVP runs locally
 - At least one PR merged to the original repo
 - Features work without breaking the base app
-

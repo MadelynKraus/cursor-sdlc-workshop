@@ -1,23 +1,22 @@
-# Base MVP
+# Plot — Garden Tracker (base MVP)
 
-This folder is where your project code lives.
+Single-page React app from [`../prd.md`](../prd.md): **weekly / monthly garden care reminders**. Add what you need to do, see what is **due this week** (including overdue), mark tasks **done today** to push the next due date, and remove reminders. Data is saved in **`localStorage`** for this browser only.
 
-## What to Build
-- A minimal, working version of your project
-- Should run locally and do *something* visible
-- Keep it simple — 10 minutes max!
+**Monthly cadence:** the MVP uses **+30 days** after last done (not calendar months).
 
-### Good Examples
-- A Chrome extension with one button that does one thing
-- A web page with basic HTML/CSS/JS
-- A simple CLI script
+## Run locally
 
-### Instructions
+```bash
+cd projects/aaronfcramer/base_mvp
+npm install
+npm run dev
+```
 
-1. Tell Cursor to read the `prd.md` in your project folder
-2. Tell Cursor to generate the base MVP here
-3. Tell Cursor to run it locally and verify it works
+Open the URL Vite prints (this project defaults to **port 5176** to avoid clashing with other Vite apps).
 
-### After You're Done
+## Build
 
-> **Ask Cursor:** "Commit all my changes with the message 'Base MVP scaffold', push to my fork, and open a PR to the original repo"
+```bash
+npm run build
+npm run preview
+```
