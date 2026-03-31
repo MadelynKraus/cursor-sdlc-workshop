@@ -1,0 +1,94 @@
+:root {
+  --text: #1a1523;
+  --muted: #5c5566;
+  --bg: #f7f4ff;
+  --diagram-bg: #ffffff;
+  --diagram-stroke: #2d2640;
+  --diagram-guide: #9a8fb8;
+  --diagram-fill: #eef0f5;
+  --diagram-accent: #ffd54f;
+  --diagram-warn: #ff8a80;
+
+  --accent: #6c4cff;
+  --accent-soft: rgba(108, 76, 255, 0.12);
+  --accent-ring: rgba(108, 76, 255, 0.35);
+  --accent-contrast: #ffffff;
+
+  --chip-bg: #ffffff;
+  --chip-bg-hover: #f0ecff;
+  --chip-border: #d4cfe8;
+  --chip-border-hover: #b8aee0;
+
+  --btn-secondary-bg: #ffffff;
+  --btn-secondary-border: #c9c2dc;
+  --btn-secondary-hover: #ece8fb;
+
+  --search-bg: #ffffff;
+  --search-border: #d4cfe8;
+  --search-input-bg: #ffffff;
+  --search-input-border: #c9c2dc;
+  --search-pick-bg: #f7f4ff;
+  --search-pick-border: #e0daf0;
+  --search-pick-hover: #ece8fb;
+
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    Roboto,
+    sans-serif;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #f3f0ff;
+    --muted: #a89fc4;
+    --bg: #1c1830;
+    --diagram-bg: #252140;
+    --diagram-stroke: #e8e4ff;
+    --diagram-guide: #6b6390;
+    --diagram-fill: #3a3558;
+    --diagram-accent: #ffe082;
+    --diagram-warn: #ffab91;
+
+    --accent: #a78bfa;
+    --accent-soft: rgba(167, 139, 250, 0.18);
+    --accent-ring: rgba(167, 139, 250, 0.45);
+    --accent-contrast: #1c1830;
+
+    --chip-bg: #252140;
+    --chip-bg-hover: #2f2a52;
+    --chip-border: #4a4370;
+    --chip-border-hover: #6a6190;
+
+    --btn-secondary-bg: #252140;
+    --btn-secondary-border: #5a5280;
+    --btn-secondary-hover: #322d55;
+
+    --search-bg: #252140;
+    --search-border: #4a4370;
+    --search-input-bg: #1c1830;
+    --search-input-border: #5a5280;
+    --search-pick-bg: #1c1830;
+    --search-pick-border: #4a4370;
+    --search-pick-hover: #322d55;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}
