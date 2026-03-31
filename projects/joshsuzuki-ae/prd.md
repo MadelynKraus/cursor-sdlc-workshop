@@ -1,85 +1,75 @@
 # Product Requirements Document (PRD)
 
-> **Instructions:** This is your project specification. Fill in the sections below to define what you're building.
-
----
-
 ## Project Overview
 
-**Project Name:** _[Give your project a name]_
+**Project Name:** Brick Breaker
 
-**One-line Description:** _[What does it do in one sentence?]_
+**One-line Description:** A web-only, ultra-simple Brick Breaker clone: move a paddle to bounce a ball and clear a small grid of bricks.
 
-**Type:** _[e.g., Chrome Extension, Web App, CLI Tool, etc.]_
+**Type:** Single-page web app (vanilla HTML + CSS + JavaScript, one `<canvas>`)
 
 ---
 
 ## Guidelines
 
 ### Keep It Small!
-- Your MVP should be buildable in **10 minutes**
-- Think "proof of concept" not "production ready"
-- If it sounds ambitious, make it simpler
-- **Use Cursor to help you plan this!**
-- This exercise is about learning the git flow and understanding where Cursor's features fit into the SDLC
 
-### Good Project Ideas
+- MVP buildable in **~10–15 minutes**; proof of concept, not production polish.
+- Single level, single ball, no power-ups, no multiple lives.
+- **Use Cursor to help you plan and implement.**
 
-**Pong** — classic paddle-and-ball game
-- _Example features:_ scoreboard, sound effects, difficulty/speed settings
+### Scope
 
-**Memory Card Match** — flip cards to find matching pairs
-- _Example features:_ move counter, timer, win animation/confetti
+**In scope**
 
-**Drawing Pad** — simple canvas you can sketch on
-- _Example features:_ color picker, brush size slider, eraser tool
+- Open `index.html` directly (no build step).
+- Keyboard: Left/Right or A/D; Space to start/restart; optional mouse to move paddle.
+- Ball bounces off walls, ceiling, paddle, and bricks; bricks disappear on hit.
+- Win when all bricks cleared; game over when ball falls below the paddle.
+- Score = bricks destroyed; states: ready, playing, won, lost.
+- ~60 FPS via `requestAnimationFrame`.
 
-**Typing Speed Game** — type a passage and measure your words per minute
-- _Example features:_ WPM display, accuracy tracker, difficulty levels
+**Out of scope**
 
-**Trivia Quiz** — multiple choice questions with score tracking
-- _Example features:_ timer per question, category selector, results summary screen
-
-### Bad Project Ideas (Too Big!)
-- Anything with a database — tell Cursor to avoid this
-- Anything requiring authentication
-- Anything with multiple pages/screens
-- Anything that "needs" an API
+- Sound, multiple levels, power-ups, multiple balls, touch-first UX, heavy animations.
 
 ---
 
 ## Base MVP
 
-> Build the minimal working version of your project first.
-
 **What the MVP includes:**
-- _[Describe the minimal working version]_
+
+- One HTML file with inline CSS + JS, single canvas (e.g. 480×360).
+- Fixed brick grid (e.g. 5×3), paddle, circular ball, constant ball speed.
+- HUD: score + short state messages (press Space to start / win / game over).
 
 **What it does NOT include (stretch goals):**
-- _[List features you'll add after the MVP works]_
+
+- Row-based brick colors, paddle “english” tuning, extra polish.
 
 ---
 
-## Features
+## Features (post-MVP ideas)
 
-> Plan out the features you want to add after the MVP is working. Each feature should be in its own component file to keep things organized.
+### Feature 1: Visual polish
 
-### Feature 1: _[Name]_
-- **Description:** _[What it does]_
-- **Files to create:** _[Be specific]_
+- **Description:** Row brick colors, subtle paddle/ball styling.
+- **Files:** same `index.html` or split `style.css` / `game.js` (Option B).
 
-### Feature 2: _[Name]_
-- **Description:** _[What it does]_
-- **Files to create:** _[Be specific]_
+### Feature 2: Difficulty tweak
 
-### Feature 3: _[Name]_
-- **Description:** _[What it does]_
-- **Files to create:** _[Be specific]_
+- **Description:** Slightly faster ball or narrower paddle after win (optional).
+- **Files:** constants in `index.html` (or `game.js`).
+
+### Feature 3: Mobile-friendly (stretch)
+
+- **Description:** Touch drag for paddle — only if scope allows.
+- **Files:** event listeners in main game file.
 
 ---
 
 ## Success Criteria
 
-- [ ] MVP runs locally
-- [ ] At least one PR merged to the original repo
-- [ ] Features work without breaking the base app
+- [ ] MVP runs by opening `base_mvp/index.html` in a browser (once implemented).
+- [ ] At least one PR merged to the workshop repo (participant folder + PRD).
+- [ ] Win/lose and score behave as specified above.
