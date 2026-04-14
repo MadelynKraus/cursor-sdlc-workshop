@@ -138,7 +138,7 @@
       <div class="prompt">PRESS SPACE TO START</div>
       <div class="controls">
         ARROW KEYS &mdash; MOVE<br>
-        SPACE &mdash; FIRE
+        HOLD SPACE &mdash; FIRE
       </div>
     </div>
   </div>
@@ -206,6 +206,8 @@
 
   let state = 'start';
   let player, bullets, enemies, stars, frameCount;
+  const FIRE_COOLDOWN = 8;
+  let fireCooldownTimer = 0;
 
   const keys = {};
 
@@ -355,6 +357,12 @@
     }
     player.x = Math.max(0, Math.min(W - PLAYER_W, player.x));
 
+    if (fireCooldownTimer > 0) fireCooldownTimer--;
+    if (keys['Space'] && fireCooldownTimer === 0) {
+      shoot();
+      fireCooldownTimer = FIRE_COOLDOWN;
+    }
+
     for (let i = bullets.length - 1; i >= 0; i--) {
       bullets[i].y -= BULLET_SPEED;
       if (bullets[i].y + BULLET_H < 0) {
@@ -446,8 +454,6 @@
         state = 'playing';
         startOverlay.classList.remove('visible');
         resetGame();
-      } else if (state === 'playing') {
-        shoot();
       }
     }
   });
