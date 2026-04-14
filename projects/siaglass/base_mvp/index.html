@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Sky Hop — Version 2</title>
+<title>Sky Hop — Version 3</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -239,12 +239,58 @@
     animation: pulse 1s ease-in-out infinite;
     margin-bottom: 8px;
   }
+
+  .stats-strip {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.5;
+    max-width: 320px;
+    margin: 0 auto 20px;
+  }
+
+  .stats-strip strong {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .milestone-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 100px;
+    transform: translateX(-50%) translateY(12px);
+    z-index: 25;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 140, 0, 0.9));
+    color: #1a1a2e;
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .milestone-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .milestone-toast {
+      transition: opacity 0.15s ease;
+    }
+    .tap-prompt, .new-best {
+      animation: none;
+    }
+  }
 </style>
 </head>
 <body>
 
 <div id="game-wrapper">
   <canvas id="game"></canvas>
+  <div id="milestoneToast" class="milestone-toast" role="status" aria-live="polite"></div>
 
   <button type="button" class="pause-toggle" id="pauseBtn" title="Pause (P)" aria-label="Pause">⏸</button>
   <button type="button" class="sound-toggle" id="soundBtn" title="Toggle sound">🔊</button>
@@ -253,7 +299,8 @@
     <div class="overlay-bg"></div>
     <div class="overlay-content">
       <div class="game-title">Sky Hop</div>
-      <div class="subtitle">Version 2 — tap to fly, beat your best</div>
+      <div class="subtitle">Version 3 — celebrate every run · stats that stick</div>
+      <div class="stats-strip" id="readyStats"></div>
       <div class="difficulty-row">
         <span class="label">Difficulty</span>
         <button type="button" class="diff-btn" data-diff="easy">Easy</button>
@@ -284,7 +331,8 @@
         <div class="score-label">Score</div>
         <div class="score-value" id="finalScore">0</div>
       </div>
-      <div class="best-score">Best: <span id="bestScoreDisplay">0</span></div>
+      <div class="best-score">All-time best: <span id="bestScoreDisplay">0</span></div>
+      <div class="stats-strip" id="gameOverStats"></div>
       <button class="btn" id="retryBtn">Retry</button>
     </div>
   </div>
@@ -311,9 +359,32 @@
   const pauseBtn = document.getElementById('pauseBtn');
   const soundBtn = document.getElementById('soundBtn');
   const diffButtons = document.querySelectorAll('.diff-btn');
+  const milestoneToast = document.getElementById('milestoneToast');
+  const readyStats = document.getElementById('readyStats');
+  const gameOverStats = document.getElementById('gameOverStats');
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const MILESTONE_MESSAGES = [
+    { at: 5, msg: 'Nice!' },
+    { at: 10, msg: 'On fire!' },
+    { at: 20, msg: 'Unstoppable!' },
+    { at: 35, msg: 'Legend!' },
+    { at: 50, msg: 'Sky master!' },
+  ];
+
+  let milestonesHit = new Set();
+  let confettiParticles = [];
+  let toastHideTimer = null;
+
+  let gamesPlayed = parseInt(localStorage.getItem('skyhop_games') || '0', 10);
+  let lastRunScore = parseInt(localStorage.getItem('skyhop_last') || '0', 10);
+  let sessionRuns = parseInt(sessionStorage.getItem('skyhop_sess_runs') || '0', 10);
+  let sessionBest = parseInt(sessionStorage.getItem('skyhop_sess_best') || '0', 10);
 
   // --- Audio (Web Audio API, no external files) ---
-  let soundEnabled = true;
+  let soundEnabled = localStorage.getItem('skyhop_sound') !== '0';
+  soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   let audioCtx;
 
@@ -348,10 +419,91 @@
     setTimeout(() => playTone(120, 0.3, 'square', 0.08), 180);
   }
 
+  function sfxMilestone() {
+    playTone(523, 0.06, 'sine', 0.12);
+    setTimeout(() => playTone(784, 0.08, 'sine', 0.1), 75);
+  }
+
+  function showMilestoneToast(msg) {
+    if (!milestoneToast) return;
+    clearTimeout(toastHideTimer);
+    milestoneToast.textContent = msg;
+    milestoneToast.classList.remove('show');
+    milestoneToast.offsetWidth;
+    milestoneToast.classList.add('show');
+    toastHideTimer = setTimeout(() => milestoneToast.classList.remove('show'), 2400);
+  }
+
+  function checkMilestones(s) {
+    for (const m of MILESTONE_MESSAGES) {
+      if (s === m.at && !milestonesHit.has(m.at)) {
+        milestonesHit.add(m.at);
+        showMilestoneToast(m.msg);
+        if (!prefersReducedMotion) sfxMilestone();
+        break;
+      }
+    }
+  }
+
+  function spawnConfetti() {
+    if (prefersReducedMotion) return;
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#fff', '#a78bfa', '#f472b6'];
+    for (let i = 0; i < 80; i++) {
+      confettiParticles.push({
+        x: CANVAS_W / 2 + (Math.random() - 0.5) * 50,
+        y: CANVAS_H * 0.32 + (Math.random() - 0.5) * 24,
+        vx: (Math.random() - 0.5) * 8,
+        vy: Math.random() * -6 - 2,
+        rot: Math.random() * Math.PI * 2,
+        vr: (Math.random() - 0.5) * 0.25,
+        life: 1,
+        color: colors[i % colors.length],
+        w: 3 + Math.random() * 4,
+        h: 4 + Math.random() * 6,
+      });
+    }
+  }
+
+  function updateConfetti() {
+    for (let i = confettiParticles.length - 1; i >= 0; i--) {
+      const p = confettiParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.16;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      p.life -= 0.011;
+      if (p.life <= 0) confettiParticles.splice(i, 1);
+    }
+  }
+
+  function drawConfetti() {
+    if (confettiParticles.length === 0) return;
+    for (const p of confettiParticles) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function refreshReadyStats() {
+    if (!readyStats) return;
+    readyStats.innerHTML =
+      '<strong>Last run:</strong> ' + lastRunScore +
+      ' · <strong>Session best:</strong> ' + sessionBest +
+      ' · <strong>Games played:</strong> ' + gamesPlayed;
+  }
+
   soundBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     soundEnabled = !soundEnabled;
     soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+    localStorage.setItem('skyhop_sound', soundEnabled ? '1' : '0');
   });
 
   // --- Game Constants ---
@@ -414,9 +566,11 @@
     spawnAccumulator = 0;
     shakeTimer = 0;
     flashAlpha = 0;
+    milestonesHit = new Set();
   }
 
   resetGame();
+  refreshReadyStats();
 
   // --- Drawing helpers ---
   function drawBackground() {
@@ -631,12 +785,31 @@
       bestScore = score;
       localStorage.setItem('flappy_best', String(bestScore));
       isNewBest = true;
+      spawnConfetti();
+    }
+
+    lastRunScore = score;
+    localStorage.setItem('skyhop_last', String(score));
+    gamesPlayed += 1;
+    localStorage.setItem('skyhop_games', String(gamesPlayed));
+    sessionRuns += 1;
+    sessionStorage.setItem('skyhop_sess_runs', String(sessionRuns));
+    if (score > sessionBest) {
+      sessionBest = score;
+      sessionStorage.setItem('skyhop_sess_best', String(sessionBest));
     }
 
     setTimeout(() => {
       finalScoreEl.textContent = score;
       bestScoreEl.textContent = bestScore;
       newBestLabel.style.display = isNewBest ? 'block' : 'none';
+      if (gameOverStats) {
+        gameOverStats.innerHTML =
+          '<strong>This session:</strong> ' + sessionRuns + ' run' + (sessionRuns === 1 ? '' : 's') +
+          ' · session best ' + sessionBest +
+          ' · <strong>total games</strong> ' + gamesPlayed;
+      }
+      refreshReadyStats();
       gameOverOverlay.classList.add('visible');
     }, 500);
   }
@@ -684,6 +857,7 @@
         pipes[i].scored = true;
         score++;
         sfxScore();
+        checkMilestones(score);
       }
 
       if (pipes[i].x + PIPE_WIDTH < -10) {
@@ -718,6 +892,7 @@
     drawGround();
     drawBird();
     drawScore();
+    drawConfetti();
 
     // Flash on death
     if (flashAlpha > 0) {
@@ -749,6 +924,7 @@
     } else if (state === 'playing') {
       update();
     }
+    if (confettiParticles.length > 0) updateConfetti();
     render();
     requestAnimationFrame(wrappedLoop);
   }
