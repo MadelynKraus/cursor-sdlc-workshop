@@ -148,11 +148,14 @@
     <div class="overlay-content">
       <div class="win-title">YOU WIN!</div>
       <div class="prompt">ALL ENEMIES DESTROYED</div>
+      <div id="winScore" style="margin-top:16px;font-size:22px;color:#ff0;letter-spacing:2px;"></div>
+      <div id="winBest" style="margin-top:6px;font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:1px;"></div>
       <button class="btn" id="replayBtn">PLAY AGAIN</button>
     </div>
   </div>
 </div>
 
+<script src="js/score.js"></script>
 <script>
 (function () {
   const canvas = document.getElementById('game');
@@ -230,6 +233,7 @@
     enemies = makeEnemies();
     stars = makeStars();
     frameCount = 0;
+    Score.reset();
   }
 
   resetGame();
@@ -319,11 +323,7 @@
   }
 
   function drawHUD() {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.font = '12px "Courier New", monospace';
-    ctx.textAlign = 'left';
-    const remaining = enemies.filter(e => e.alive).length;
-    ctx.fillText('ENEMIES: ' + remaining + ' / ' + enemies.length, 12, 20);
+    Score.draw(ctx, W);
   }
 
   // --- Update ---
@@ -357,6 +357,7 @@
           b.y + BULLET_H > e.y
         ) {
           e.alive = false;
+          Score.addKill(e.row);
           bullets.splice(i, 1);
           break;
         }
@@ -365,6 +366,8 @@
 
     if (enemies.every(e => !e.alive)) {
       state = 'win';
+      document.getElementById('winScore').textContent = 'SCORE: ' + String(Score.getCurrent()).padStart(6, '0');
+      document.getElementById('winBest').textContent = 'HIGH SCORE: ' + String(Score.getBest()).padStart(6, '0');
       winOverlay.classList.add('visible');
     }
 
