@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Sky Hop — Version 3</title>
+<title>Sky Hop — Version 4</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -276,6 +276,72 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  .leaderboard {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: left;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto 16px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .leaderboard .lb-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #ffd700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .leaderboard .lb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .leaderboard .lb-row:last-child {
+    border-bottom: none;
+  }
+
+  .leaderboard .lb-diff {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 215, 0, 0.85);
+    background: rgba(255, 215, 0, 0.12);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+
+  .leaderboard .lb-empty {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 12px;
+    padding: 4px 0;
+  }
+
+  .link-reset {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 11px;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 8px;
+    padding: 4px;
+  }
+
+  .link-reset:hover {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .milestone-toast {
       transition: opacity 0.15s ease;
@@ -299,8 +365,10 @@
     <div class="overlay-bg"></div>
     <div class="overlay-content">
       <div class="game-title">Sky Hop</div>
-      <div class="subtitle">Version 3 — celebrate every run · stats that stick</div>
+      <div class="subtitle">Version 4 — leaderboards · per-difficulty bests · score pops</div>
       <div class="stats-strip" id="readyStats"></div>
+      <div class="leaderboard" id="leaderboardReady" aria-label="Local top scores"></div>
+      <button type="button" class="link-reset" id="clearRecordsBtn">Clear leaderboard &amp; difficulty records</button>
       <div class="difficulty-row">
         <span class="label">Difficulty</span>
         <button type="button" class="diff-btn" data-diff="easy">Easy</button>
@@ -333,6 +401,7 @@
       </div>
       <div class="best-score">All-time best: <span id="bestScoreDisplay">0</span></div>
       <div class="stats-strip" id="gameOverStats"></div>
+      <div class="leaderboard" id="leaderboardGameOver" aria-label="Local top scores"></div>
       <button class="btn" id="retryBtn">Retry</button>
     </div>
   </div>
@@ -362,8 +431,83 @@
   const milestoneToast = document.getElementById('milestoneToast');
   const readyStats = document.getElementById('readyStats');
   const gameOverStats = document.getElementById('gameOverStats');
+  const leaderboardReady = document.getElementById('leaderboardReady');
+  const leaderboardGameOver = document.getElementById('leaderboardGameOver');
+  const clearRecordsBtn = document.getElementById('clearRecordsBtn');
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const LB_KEY = 'skyhop_lb';
+  const DIFF_BEST_KEY = 'skyhop_diff_best';
+
+  function loadLeaderboard() {
+    try {
+      const raw = localStorage.getItem(LB_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveLeaderboard(arr) {
+    localStorage.setItem(LB_KEY, JSON.stringify(arr.slice(0, 5)));
+  }
+
+  function addToLeaderboard(s, diff) {
+    if (s <= 0) return;
+    const list = loadLeaderboard();
+    list.push({ score: s, diff: diff, t: Date.now() });
+    list.sort(function (a, b) { return b.score - a.score; });
+    saveLeaderboard(list);
+  }
+
+  function loadDiffBests() {
+    try {
+      const raw = localStorage.getItem(DIFF_BEST_KEY);
+      if (!raw) return { easy: 0, medium: 0, hard: 0 };
+      const o = JSON.parse(raw);
+      return {
+        easy: o.easy | 0,
+        medium: o.medium | 0,
+        hard: o.hard | 0,
+      };
+    } catch (e) {
+      return { easy: 0, medium: 0, hard: 0 };
+    }
+  }
+
+  let diffBests = loadDiffBests();
+
+  const DIFF_SHORT = { easy: 'Easy', medium: 'Med', hard: 'Hard' };
+
+  function renderLeaderboard(el) {
+    if (!el) return;
+    const rows = loadLeaderboard();
+    if (rows.length === 0) {
+      el.innerHTML =
+        '<div class="lb-title">Top 5 (this device)</div>' +
+        '<div class="lb-empty">No runs yet — play a round!</div>' +
+        '<div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.5)">' +
+        'Best by mode: E ' + diffBests.easy + ' · M ' + diffBests.medium + ' · H ' + diffBests.hard +
+        '</div>';
+      return;
+    }
+    let html = '<div class="lb-title">Top 5 (this device)</div>';
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const d = DIFF_SHORT[r.diff] || r.diff;
+      html +=
+        '<div class="lb-row"><span>' + (i + 1) + '. ' + r.score + '</span>' +
+        '<span class="lb-diff">' + d + '</span></div>';
+    }
+    html +=
+      '<div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.5)">' +
+      'Best by mode: E ' + diffBests.easy + ' · M ' + diffBests.medium + ' · H ' + diffBests.hard +
+      '</div>';
+    el.innerHTML = html;
+  }
 
   const MILESTONE_MESSAGES = [
     { at: 5, msg: 'Nice!' },
@@ -375,6 +519,7 @@
 
   let milestonesHit = new Set();
   let confettiParticles = [];
+  let scorePops = [];
   let toastHideTimer = null;
 
   let gamesPlayed = parseInt(localStorage.getItem('skyhop_games') || '0', 10);
@@ -492,11 +637,75 @@
   }
 
   function refreshReadyStats() {
-    if (!readyStats) return;
-    readyStats.innerHTML =
-      '<strong>Last run:</strong> ' + lastRunScore +
-      ' · <strong>Session best:</strong> ' + sessionBest +
-      ' · <strong>Games played:</strong> ' + gamesPlayed;
+    if (readyStats) {
+      readyStats.innerHTML =
+        '<strong>Last run:</strong> ' + lastRunScore +
+        ' · <strong>Session best:</strong> ' + sessionBest +
+        ' · <strong>Games played:</strong> ' + gamesPlayed;
+    }
+    renderLeaderboard(leaderboardReady);
+  }
+
+  function spawnScorePop() {
+    if (prefersReducedMotion) return;
+    scorePops.push({
+      x: CANVAS_W / 2 + (Math.random() - 0.5) * 36,
+      y: 58,
+      vy: -1.4,
+      life: 1,
+      label: '+1',
+    });
+  }
+
+  function updateScorePops() {
+    for (let i = scorePops.length - 1; i >= 0; i--) {
+      const p = scorePops[i];
+      p.y += p.vy;
+      p.vy *= 0.97;
+      p.life -= 0.028;
+      if (p.life <= 0) scorePops.splice(i, 1);
+    }
+  }
+
+  function drawScorePops() {
+    if (scorePops.length === 0) return;
+    for (let i = 0; i < scorePops.length; i++) {
+      const p = scorePops[i];
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.font = 'bold 22px "Segoe UI", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.lineWidth = 4;
+      ctx.strokeText(p.label, p.x, p.y);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(p.label, p.x, p.y);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawDifficultyHud() {
+    if (state !== 'playing' && state !== 'paused') return;
+    const label = DIFF_SHORT[selectedDifficulty] || selectedDifficulty;
+    ctx.save();
+    ctx.font = '600 13px "Segoe UI", system-ui, sans-serif';
+    const w = ctx.measureText(label).width + 26;
+    const x = (CANVAS_W - w) / 2;
+    const y = 10;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, 26, 8);
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, y, w, 26);
+    }
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, CANVAS_W / 2, y + 13);
+    ctx.restore();
   }
 
   soundBtn.addEventListener('click', (e) => {
@@ -567,6 +776,7 @@
     shakeTimer = 0;
     flashAlpha = 0;
     milestonesHit = new Set();
+    scorePops = [];
   }
 
   resetGame();
@@ -799,6 +1009,12 @@
       sessionStorage.setItem('skyhop_sess_best', String(sessionBest));
     }
 
+    addToLeaderboard(score, selectedDifficulty);
+    if (score > (diffBests[selectedDifficulty] || 0)) {
+      diffBests[selectedDifficulty] = score;
+      localStorage.setItem(DIFF_BEST_KEY, JSON.stringify(diffBests));
+    }
+
     setTimeout(() => {
       finalScoreEl.textContent = score;
       bestScoreEl.textContent = bestScore;
@@ -810,6 +1026,7 @@
           ' · <strong>total games</strong> ' + gamesPlayed;
       }
       refreshReadyStats();
+      renderLeaderboard(leaderboardGameOver);
       gameOverOverlay.classList.add('visible');
     }, 500);
   }
@@ -857,6 +1074,7 @@
         pipes[i].scored = true;
         score++;
         sfxScore();
+        spawnScorePop();
         checkMilestones(score);
       }
 
@@ -891,7 +1109,9 @@
 
     drawGround();
     drawBird();
+    drawDifficultyHud();
     drawScore();
+    drawScorePops();
     drawConfetti();
 
     // Flash on death
@@ -925,6 +1145,7 @@
       update();
     }
     if (confettiParticles.length > 0) updateConfetti();
+    if (scorePops.length > 0) updateScorePops();
     render();
     requestAnimationFrame(wrappedLoop);
   }
@@ -978,6 +1199,17 @@
     ensureAudio();
     retry();
   });
+
+  if (clearRecordsBtn) {
+    clearRecordsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm('Clear local top 5 and per-difficulty best scores on this device?')) return;
+      localStorage.removeItem(LB_KEY);
+      localStorage.removeItem(DIFF_BEST_KEY);
+      diffBests = { easy: 0, medium: 0, hard: 0 };
+      renderLeaderboard(leaderboardReady);
+    });
+  }
 
   // Prevent double-tap zoom on mobile
   document.addEventListener('dblclick', (e) => e.preventDefault());
