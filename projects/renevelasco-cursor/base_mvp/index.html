@@ -168,6 +168,7 @@
 <script src="js/score.js"></script>
 <script src="js/enemy-movement.js"></script>
 <script src="js/lives.js"></script>
+<script src="js/explosions.js"></script>
 <script>
 (function () {
   const canvas = document.getElementById('game');
@@ -252,6 +253,7 @@
     Score.reset();
     EnemyMovement.reset();
     Lives.reset();
+    Explosions.reset();
   }
 
   resetGame();
@@ -382,6 +384,7 @@
         ) {
           e.alive = false;
           Score.addKill(e.row);
+          Explosions.spawn(e.x + ENEMY_W / 2, e.y + ENEMY_H / 2, ENEMY_COLORS[e.row % ENEMY_COLORS.length]);
           bullets.splice(i, 1);
           break;
         }
@@ -391,7 +394,10 @@
     EnemyMovement.update(enemies, frameCount, W, H);
 
     Lives.update();
-    Lives.checkPlayerHit(player, PLAYER_W, PLAYER_H, enemies, ENEMY_W, ENEMY_H, EnemyMovement);
+    const wasHit = Lives.checkPlayerHit(player, PLAYER_W, PLAYER_H, enemies, ENEMY_W, ENEMY_H, EnemyMovement);
+    if (wasHit) {
+      Explosions.spawn(player.x + PLAYER_W / 2, player.y + PLAYER_H / 2, '#fff');
+    }
 
     if (Lives.getCount() <= 0) {
       state = 'gameover';
@@ -408,6 +414,7 @@
       winOverlay.classList.add('visible');
     }
 
+    Explosions.update();
     updateStars();
   }
 
@@ -430,6 +437,7 @@
       for (const e of enemies) drawEnemy(e);
       for (const b of bullets) drawBullet(b);
       EnemyMovement.drawBullets(ctx);
+      Explosions.draw(ctx);
       const showPlayer = !Lives.isInvincible() || Math.floor(frameCount / 4) % 2 === 0;
       if (showPlayer) drawPlayer();
       drawHUD();
