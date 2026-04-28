@@ -4,35 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pilates Picks NYC</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f6f3ef;
-      --card: #fff;
-      --text: #1c1917;
-      --muted: #57534e;
-      --accent: #4a6741;
-      --accent-soft: #e8efe6;
-      --border: #e7e5e4;
-      --brooklyn: #1e3a5f;
-      --manhattan: #44403c;
-      --lagree: #7c2d12;
-      --lagree-bg: #ffedd5;
-      --reformer: #1e3a5f;
-      --reformer-bg: #e0e7ef;
-      --mat: #365314;
-      --mat-bg: #ecfccb;
-      --both: #6b21a8;
-      --both-bg: #f3e8ff;
+      --bg: #fffff0;
+      --bg-warm: #f7f5eb;
+      --card: #fffef8;
+      --text: #0f2419;
+      --muted: #2d4a38;
+      --accent: #14532d;
+      --accent-hover: #166534;
+      --accent-soft: #e6efe8;
+      --border: #c9d4c4;
+      --brooklyn: #134e4a;
+      --manhattan: #0f2419;
+      --lagree: #5c2e0a;
+      --lagree-bg: #f5ebe0;
+      --reformer: #0f2419;
+      --reformer-bg: #e8efe8;
+      --mat: #14532d;
+      --mat-bg: #e6efe8;
+      --both: #3f2d4d;
+      --both-bg: #ebe6f0;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      background: var(--bg);
+      font-family: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 1.0625rem;
+      background: linear-gradient(180deg, var(--bg) 0%, var(--bg-warm) 45%, var(--bg) 100%);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.58;
+      -webkit-font-smoothing: antialiased;
       min-height: 100vh;
       padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 3rem;
       display: flex;
@@ -46,22 +50,27 @@
       text-align: center;
     }
     h1 {
-      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+      font-size: clamp(1.65rem, 4.2vw, 2.15rem);
       font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.35rem;
+      font-optical-sizing: auto;
+      letter-spacing: -0.015em;
+      color: var(--text);
+      margin-bottom: 0.4rem;
     }
     .lede {
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 1rem;
+      max-width: 32rem;
+      margin: 0 auto;
     }
     #load-error {
       display: none;
       max-width: 56rem;
       width: 100%;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #7f1d1d;
+      background: #fef6f0;
+      border: 1px solid #e8c4b8;
+      color: #5c1f12;
       padding: 1rem 1.25rem;
       border-radius: 10px;
       margin-bottom: 1.5rem;
@@ -75,7 +84,7 @@
       background: #fff;
       padding: 0.5rem 0.65rem;
       border-radius: 6px;
-      border: 1px solid #fecaca;
+      border: 1px solid #e8c4b8;
       white-space: pre-wrap;
       word-break: break-all;
     }
@@ -93,13 +102,148 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      box-shadow: 0 2px 8px rgba(15, 36, 25, 0.06);
+    }
+    .toolbar-primary {
+      display: flex;
       flex-wrap: wrap;
       gap: 0.75rem 1.25rem;
       align-items: flex-end;
-      box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+    }
+    .neighborhood-toolbar {
+      width: 100%;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border);
+    }
+    .neighborhood-details summary {
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      list-style: none;
+    }
+    .neighborhood-details summary::-webkit-details-marker { display: none; }
+    .neighborhood-details summary::before {
+      content: '▸ ';
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    .neighborhood-details[open] summary::before { transform: rotate(90deg); }
+    .neighborhood-panel-inner {
+      margin-top: 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .neighborhood-quick,
+    .neighborhood-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 0.5rem 0.75rem;
+    }
+    .neighborhood-quick label,
+    .neighborhood-filter-row label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      width: 100%;
+      margin-bottom: 0;
+    }
+    .neighborhood-quick input[type="text"],
+    .neighborhood-filter-row input[type="search"] {
+      font: inherit;
+      font-size: 0.95rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fffef8;
+      color: var(--text);
+      min-width: min(100%, 12rem);
+      flex: 1;
+    }
+    .neighborhood-quick input:focus,
+    .neighborhood-filter-row input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .neighborhood-quick button,
+    .neighborhood-actions button {
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--accent-soft);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .neighborhood-quick button:hover,
+    .neighborhood-actions button:hover {
+      background: var(--card);
+      border-color: var(--accent);
+    }
+    .neighborhood-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .neighborhood-fieldset {
+      border: 0;
+      margin: 0;
+      padding: 0;
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .neighborhood-checkboxes {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-height: 14rem;
+      overflow-y: auto;
+      padding: 0.5rem 0.35rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fffef8;
+    }
+    .neighborhood-checkboxes label.neighborhood-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: normal;
+      cursor: pointer;
+      margin: 0;
+    }
+    .neighborhood-checkboxes label.neighborhood-option input {
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+    }
+    .neighborhood-checkboxes label.neighborhood-option.hidden-nb {
+      display: none;
     }
     .toolbar label {
-      font-size: 0.72rem;
+      font-size: 0.78rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -110,95 +254,36 @@
     .toolbar .field { min-width: 8rem; }
     .toolbar button.btn-geo {
       font: inherit;
-      font-size: 0.85rem;
-      padding: 0.45rem 0.75rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 0.5rem 0.85rem;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
       cursor: pointer;
     }
-    .toolbar button.btn-geo:hover { background: var(--accent-soft); }
+    .toolbar button.btn-geo:hover { background: var(--accent-soft); border-color: var(--border); }
     .toolbar button.btn-geo:focus {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
     .toolbar button.btn-geo.active {
       background: var(--accent);
-      color: #fff;
+      color: #fffef8;
       border-color: var(--accent);
     }
     .rank-rationale {
       width: 100%;
       margin-bottom: 1rem;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: var(--muted);
       padding: 0 0.15rem;
     }
-    .app-grid {
-      display: grid;
-      gap: 1.25rem;
-      align-items: start;
-    }
-    @media (min-width: 900px) {
-      .app-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-    .map-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
-    }
-    .map-panel h2 {
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      padding: 0.75rem 1rem 0;
-    }
-    #map {
-      height: min(42vh, 320px);
+    .list-panel {
+      min-width: 0;
       width: 100%;
-      min-height: 220px;
-      margin-top: 0.5rem;
     }
-    @media (min-width: 900px) {
-      #map {
-        height: min(65vh, 480px);
-        min-height: 360px;
-      }
-    }
-    .map-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem 1rem;
-      padding: 0.65rem 1rem 0.85rem;
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-    .map-legend span {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-    .map-legend i {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .map-legend .lg-m { background: var(--manhattan); border: 1px solid #292524; }
-    .map-legend .lg-b { background: var(--brooklyn); border: 1px solid #0f172a; }
-    .map-hint {
-      padding: 0 1rem 0.85rem;
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-    .list-panel { min-width: 0; }
     .list {
       list-style: none;
       display: flex;
@@ -215,17 +300,19 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 0.75rem 1rem;
-      box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+      box-shadow: 0 2px 8px rgba(15, 36, 25, 0.05);
     }
     .card-main { flex: 1; min-width: 12rem; }
     .card h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 1.12rem;
+      font-weight: 700;
       margin-bottom: 0;
     }
     .meta {
-      font-size: 0.85rem;
+      font-size: 0.92rem;
       color: var(--muted);
+      font-weight: 500;
     }
     .badges {
       display: flex;
@@ -243,11 +330,11 @@
       border-radius: 6px;
     }
     .borough.manhattan {
-      background: #f5f5f4;
+      background: var(--accent-soft);
       color: var(--manhattan);
     }
     .borough.brooklyn {
-      background: #e0e7ef;
+      background: #dcecea;
       color: var(--brooklyn);
     }
     .type-pill {
@@ -269,15 +356,15 @@
       align-items: flex-end;
     }
     .score-wrap label {
-      font-size: 0.72rem;
-      font-weight: 600;
+      font-size: 0.76rem;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: var(--muted);
+      color: var(--accent);
     }
     select {
       font: inherit;
-      font-size: 0.95rem;
+      font-size: 1rem;
       padding: 0.4rem 0.6rem;
       border-radius: 8px;
       border: 1px solid var(--border);
@@ -292,39 +379,38 @@
     }
     .hint {
       margin-top: 1.25rem;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: var(--muted);
       text-align: center;
     }
-    .leaflet-container { font-family: inherit; }
     .card-details {
       width: 100%;
       margin-top: 0.65rem;
       padding-top: 0.65rem;
       border-top: 1px solid var(--border);
-      font-size: 0.82rem;
+      font-size: 0.9rem;
     }
     .card-details h4 {
-      font-size: 0.72rem;
-      font-weight: 600;
+      font-size: 0.76rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
+      letter-spacing: 0.06em;
+      color: var(--accent);
       margin: 0.5rem 0 0.25rem;
     }
     .card-details h4:first-child { margin-top: 0; }
     .card-details ul { margin: 0.15rem 0 0 1.1rem; padding: 0; }
     .card-details .subway { color: var(--text); }
     .card-details .muted-small {
-      font-size: 0.78rem;
+      font-size: 0.84rem;
       color: var(--muted);
       margin-top: 0.35rem;
     }
     .editorial-badge {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--accent);
-      background: var(--accent-soft);
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #fffef8;
+      background: var(--accent);
       padding: 0.15rem 0.45rem;
       border-radius: 6px;
       margin-left: 0.35rem;
@@ -343,28 +429,36 @@
       margin-top: 0.35rem;
     }
     .chip {
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.03em;
       padding: 0.12rem 0.4rem;
       border-radius: 4px;
-      background: #f5f5f4;
-      color: var(--muted);
+      background: var(--accent-soft);
+      color: var(--text);
     }
     .site-footer {
       width: 100%;
       margin: 2rem auto 0;
       padding-top: 1.25rem;
       border-top: 1px solid var(--border);
-      font-size: 0.8rem;
+      font-size: 0.88rem;
       color: var(--muted);
     }
     .site-footer details { margin-bottom: 0.75rem; }
+    .card-details a {
+      color: var(--accent);
+      font-weight: 600;
+      text-underline-offset: 2px;
+    }
+    .card-details a:hover {
+      color: var(--accent-hover);
+    }
     .site-footer summary {
       cursor: pointer;
-      font-weight: 600;
-      color: var(--text);
+      font-weight: 700;
+      color: var(--accent);
     }
     .site-footer p { margin: 0.4rem 0 0; }
   </style>
@@ -372,104 +466,116 @@
 <body>
   <header>
     <h1>Pilates Picks NYC</h1>
-    <p class="lede">Manhattan &amp; Brooklyn only. Filter by <strong>format</strong> (Lagree, Reformer, Mat, multi-format). <strong>Editorial scores</strong> live in the data file; <strong>your 1–5 scores</strong> stay on this device. Use <strong>what to bring</strong> and subway hints as a starting point, then confirm on the studio’s site before you book.</p>
+    <p class="lede">Manhattan &amp; Brooklyn studios. Editorial scores live in the data; your ratings stay on this device.</p>
   </header>
 
   <div id="load-error" role="alert"></div>
   <div id="app" aria-live="polite">
     <div class="toolbar" role="region" aria-label="Filters and sort">
-      <div class="field">
-        <label for="filter-borough">Borough</label>
-        <select id="filter-borough" aria-label="Filter by borough">
-          <option value="all">All</option>
-          <option value="Manhattan">Manhattan</option>
-          <option value="Brooklyn">Brooklyn</option>
-        </select>
+      <div class="toolbar-primary">
+        <div class="field">
+          <label for="filter-borough">Borough</label>
+          <select id="filter-borough" aria-label="Filter by borough">
+            <option value="all">All</option>
+            <option value="Manhattan">Manhattan</option>
+            <option value="Brooklyn">Brooklyn</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-type">Format</label>
+          <select id="filter-type" aria-label="Filter by class format">
+            <option value="all">All</option>
+            <option value="lagree">Lagree</option>
+            <option value="reformer">Reformer</option>
+            <option value="mat">Mat</option>
+            <option value="both">Multi-format</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sort-mode">Sort</label>
+          <select id="sort-mode" aria-label="Sort studios">
+            <option value="editorial">Editorial</option>
+            <option value="my">Mine</option>
+            <option value="combined">Combined</option>
+            <option value="nearest" id="sort-nearest-option" disabled>Nearest</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="btn-use-location">&nbsp;</label>
+          <button type="button" class="btn-geo" id="btn-use-location" aria-pressed="false">My location</button>
+        </div>
       </div>
-      <div class="field">
-        <label for="filter-type">Format</label>
-        <select id="filter-type" aria-label="Filter by class format">
-          <option value="all">All formats</option>
-          <option value="lagree">Lagree</option>
-          <option value="reformer">Reformer</option>
-          <option value="mat">Mat</option>
-          <option value="both">Multi-format</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="sort-mode">Sort</label>
-        <select id="sort-mode" aria-label="Sort studios">
-          <option value="editorial">Editorial score</option>
-          <option value="my">My ratings</option>
-          <option value="combined">Combined (editorial + mine)</option>
-          <option value="nearest" id="sort-nearest-option" disabled>Nearest me</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="btn-use-location">&nbsp;</label>
-        <button type="button" class="btn-geo" id="btn-use-location" aria-pressed="false">Use my location</button>
+      <div class="neighborhood-toolbar">
+        <details class="neighborhood-details" id="neighborhood-details">
+          <summary id="neighborhood-summary" aria-live="polite">Neighborhoods · all areas</summary>
+          <div class="neighborhood-panel-inner">
+            <div class="neighborhood-quick">
+              <div style="flex: 1 1 100%;">
+                <label for="neighborhood-quick-input">Add by name</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+                  <input type="text" id="neighborhood-quick-input" list="neighborhood-datalist" placeholder="e.g. SoHo, Park Slope…" autocomplete="off" aria-label="Type a neighborhood to add to filter" />
+                  <datalist id="neighborhood-datalist"></datalist>
+                  <button type="button" id="neighborhood-quick-add">Add</button>
+                </div>
+              </div>
+            </div>
+            <div class="neighborhood-filter-row">
+              <div style="flex: 1;">
+                <label for="neighborhood-search">Filter checkbox list</label>
+                <input type="search" id="neighborhood-search" placeholder="Narrow the list…" aria-label="Filter neighborhood checkbox list" />
+              </div>
+            </div>
+            <div class="neighborhood-actions">
+              <button type="button" id="neighborhood-clear">Clear neighborhoods</button>
+            </div>
+            <fieldset class="neighborhood-fieldset">
+              <legend class="visually-hidden">Choose neighborhoods</legend>
+              <div id="neighborhood-checkboxes" class="neighborhood-checkboxes" role="group" aria-label="Neighborhood checkboxes"></div>
+            </fieldset>
+          </div>
+        </details>
       </div>
     </div>
     <p class="rank-rationale" id="rank-rationale" aria-live="polite"></p>
-    <div class="app-grid">
-      <section class="map-panel" aria-labelledby="map-heading">
-        <h2 id="map-heading">Studio map</h2>
-        <p id="map-list-hint" class="map-hint" style="padding-top:0.5rem;margin-top:0">Studios in the list match the map pins. Dense areas use clusters—click a cluster to zoom in.</p>
-        <div id="map" role="application" aria-label="Map of pilates studios in Manhattan and Brooklyn" aria-describedby="map-list-hint"></div>
-        <div class="map-legend" aria-hidden="true">
-          <span><i class="lg-m" aria-hidden="true"></i> Manhattan</span>
-          <span><i class="lg-b" aria-hidden="true"></i> Brooklyn</span>
-        </div>
-        <p class="map-hint">Pins are neighborhood-level placeholders for this demo, not exact storefronts. © OpenStreetMap contributors.</p>
-      </section>
-      <div class="list-panel">
-        <ul class="list" id="studio-list"></ul>
-      </div>
+    <div class="list-panel">
+      <ul class="list" id="studio-list"></ul>
     </div>
-    <p class="hint"><strong>Your score:</strong> 5 = love it, 1 = not for you. Unrated counts as 0 in “Combined.” Editorial scores are curated in <code>studios.json</code>, not official studio ratings.</p>
+    <p class="hint">Your score: 5 best, 1 least. Combined treats unrated as 0.</p>
     <footer class="site-footer">
       <details>
-        <summary>Data &amp; outbound links</summary>
-        <p>Listings are maintained for this workshop app. Each studio may include a <strong>lastVerified</strong> month in data. Transit hints are orientation only—confirm the exact address and access on the studio’s official site or map before you travel. Outbound “Search in Google Maps” links use Google Maps search from studio name and neighborhood; this app is not affiliated with Google or the studios. <strong>Cadence:</strong> aim to re-verify listings about once a quarter or when a studio announces a move.</p>
-      </details>
-      <details>
-        <summary>Health, trademarks &amp; future reviews</summary>
-        <p>This app is for discovery only, not medical or fitness advice. “Lagree” and Megaformer-style classes are distinct from classical Pilates; studio names are factual references, not endorsements. User-written reviews are not enabled in this version; if they are added later, they will need moderation, reporting, and clear terms of use.</p>
+        <summary>About this app</summary>
+        <p>Discovery only—not medical advice. Verify addresses, transit, and class rules on each studio’s site. Listings include optional <strong>lastVerified</strong> in data. Maps search opens Google Maps; not affiliated with Google or studios.</p>
       </details>
     </footer>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
   <script>
     (function () {
       var STORAGE_SCORES = 'pilates-picks-nyc-scores-v1';
       var STORAGE_SORT = 'pilates-picks-nyc-sort-v1';
       var STORAGE_BORO = 'pilates-picks-nyc-borough-filter-v1';
       var STORAGE_TYPE = 'pilates-picks-nyc-type-filter-v1';
+      var STORAGE_HOODS = 'pilates-picks-nyc-neighborhoods-v1';
       var DATA_URL = 'data/studios.json';
 
       var TYPE_LABELS = {
         lagree: 'Lagree',
         reformer: 'Reformer',
         mat: 'Mat',
-        both: 'Both (multi-format)'
+        both: 'Multi-format'
       };
 
       var BRING_LABELS = {
-        grip_socks: 'Grip / sticky socks (often required; many studios sell them)',
+        grip_socks: 'Grip socks (often required)',
         water: 'Water bottle',
-        towel: 'Small towel',
-        own_mat: 'Your own mat (BYO for mat-style classes)'
+        towel: 'Towel',
+        own_mat: 'BYO mat (mat classes)'
       };
 
       var studios = [];
       var originalIndex = {};
-      var map = null;
-      var markerCluster = null;
-      var userMarker = null;
-      var lastFitKey = '';
       var userLocation = null;
+      var neighborhoodList = [];
 
       function normalizeType(raw) {
         var t = (raw || '').toLowerCase();
@@ -603,19 +709,19 @@
         if (t === 'lagree') {
           o.required = ['grip_socks'];
           o.recommended = ['water', 'towel'];
-          o.notes = 'Lagree / Megaformer-style: studios often require grip socks and sell them at the desk.';
+          o.notes = 'Lagree studios usually require grip socks.';
         } else if (t === 'mat') {
           o.recommended = ['own_mat', 'water'];
           o.optional = ['towel'];
-          o.notes = 'Mat policies vary by class—confirm BYO mat on the schedule.';
+          o.notes = 'Confirm BYO mat on the schedule.';
         } else if (t === 'both') {
           o.required = ['grip_socks'];
           o.recommended = ['water', 'towel', 'own_mat'];
-          o.notes = 'Multi-format: reformer-style classes usually need grip socks; mat segments may need your own mat.';
+          o.notes = 'Reformer segments often need grip socks; mat may need your mat.';
         } else {
           o.required = ['grip_socks'];
           o.recommended = ['water', 'towel'];
-          o.notes = 'Most reformer studios require grip socks; bring water.';
+          o.notes = 'Most reformer studios require grip socks.';
         }
         if (studio.whatToBringNotes) {
           o.notes = o.notes ? o.notes + ' ' + studio.whatToBringNotes : studio.whatToBringNotes;
@@ -640,140 +746,6 @@
       function mapsSearchUrl(studio) {
         var q = studio.name + ' ' + studio.neighborhood + ' ' + studio.borough + ' pilates';
         return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
-      }
-
-      function buildPopupContent(studio, scores, loc) {
-        var wrap = document.createElement('div');
-        wrap.style.minWidth = '10rem';
-        wrap.style.maxWidth = '14rem';
-
-        var title = document.createElement('strong');
-        title.textContent = studio.name;
-        title.style.display = 'block';
-        title.style.marginBottom = '0.25rem';
-        wrap.appendChild(title);
-
-        var sub = document.createElement('div');
-        sub.style.fontSize = '0.8rem';
-        sub.style.color = '#57534e';
-        sub.textContent = studio.neighborhood + ' · ' + typeLabel(studio);
-        wrap.appendChild(sub);
-
-        var ed = document.createElement('div');
-        ed.style.fontSize = '0.8rem';
-        ed.style.marginTop = '0.35rem';
-        ed.textContent = 'Editorial: ' + editorialFor(studio) + '/5 · ' + (studio.priceBand || '—');
-        wrap.appendChild(ed);
-
-        var sc = scoreFor(studio.id, scores);
-        var scoreLine = document.createElement('div');
-        scoreLine.style.fontSize = '0.8rem';
-        scoreLine.style.marginTop = '0.25rem';
-        scoreLine.textContent = sc ? ('Your score: ' + sc + ' / 5') : 'Your score: —';
-        wrap.appendChild(scoreLine);
-
-        if (loc && typeof studio.lat === 'number' && typeof studio.lng === 'number') {
-          var mi = distanceFor(studio, loc);
-          var dist = document.createElement('div');
-          dist.style.fontSize = '0.8rem';
-          dist.style.marginTop = '0.25rem';
-          dist.textContent = '~' + mi.toFixed(1) + ' mi (straight-line)';
-          wrap.appendChild(dist);
-        }
-
-        var a = document.createElement('a');
-        a.href = mapsSearchUrl(studio);
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.textContent = 'Open in Maps';
-        a.style.display = 'inline-block';
-        a.style.marginTop = '0.5rem';
-        a.style.fontSize = '0.85rem';
-        wrap.appendChild(a);
-
-        return wrap;
-      }
-
-      function markerStyle(studio) {
-        var isBk = studio.borough === 'Brooklyn';
-        return {
-          radius: 8,
-          color: isBk ? '#0f172a' : '#292524',
-          weight: 2,
-          fillColor: isBk ? '#1e3a5f' : '#4a6741',
-          fillOpacity: 0.88
-        };
-      }
-
-      function useClusterLayer() {
-        return typeof L !== 'undefined' && typeof L.markerClusterGroup === 'function';
-      }
-
-      function initMap() {
-        if (typeof L === 'undefined' || map) return;
-        map = L.map('map', { scrollWheelZoom: false });
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer">OpenStreetMap</a>'
-        }).addTo(map);
-        if (useClusterLayer()) {
-          markerCluster = L.markerClusterGroup({ maxClusterRadius: 48, spiderfyOnMaxZoom: true });
-          markerCluster.addTo(map);
-        } else {
-          markerCluster = L.layerGroup().addTo(map);
-        }
-        map.setView([40.73, -73.98], 11);
-      }
-
-      function setUserMarker(loc) {
-        if (!map || !loc) return;
-        if (userMarker) {
-          map.removeLayer(userMarker);
-          userMarker = null;
-        }
-        userMarker = L.circleMarker([loc.lat, loc.lng], {
-          radius: 7,
-          color: '#1d4ed8',
-          weight: 2,
-          fillColor: '#3b82f6',
-          fillOpacity: 0.95
-        });
-        userMarker.bindTooltip('Your approximate location', { permanent: false });
-        userMarker.addTo(map);
-      }
-
-      function updateMap(ordered, scores, loc, fitKey) {
-        if (typeof L === 'undefined') return;
-        initMap();
-        if (!markerCluster) return;
-        markerCluster.clearLayers();
-        var bounds = [];
-
-        ordered.forEach(function (studio) {
-          var lat = typeof studio.lat === 'number' ? studio.lat : null;
-          var lng = typeof studio.lng === 'number' ? studio.lng : null;
-          if (lat == null || lng == null) return;
-          var cm = L.circleMarker([lat, lng], markerStyle(studio));
-          cm.bindPopup(buildPopupContent(studio, scores, loc));
-          markerCluster.addLayer(cm);
-          bounds.push([lat, lng]);
-        });
-
-        if (loc) {
-          bounds.push([loc.lat, loc.lng]);
-          setUserMarker(loc);
-        } else if (userMarker && map) {
-          map.removeLayer(userMarker);
-          userMarker = null;
-        }
-
-        if (bounds.length && map && fitKey !== lastFitKey) {
-          map.fitBounds(bounds, { padding: [36, 36], maxZoom: 13 });
-          lastFitKey = fitKey;
-        }
-        setTimeout(function () {
-          if (map) map.invalidateSize();
-        }, 0);
       }
 
       function getUiState() {
@@ -813,17 +785,17 @@
       function updateRankRationale(sortMode, loc, count) {
         var el = document.getElementById('rank-rationale');
         if (!el) return;
-        var parts = ['Showing ' + count + ' studio' + (count === 1 ? '' : 's') + '.'];
+        var parts = [count + ' studio' + (count === 1 ? '' : 's')];
         if (sortMode === 'editorial') {
-          parts.push('Sorted by editorial score (curated 1–5 in data), then name.');
+          parts.push('Editorial score, then name.');
         } else if (sortMode === 'my') {
-          parts.push('Sorted by your rating, then editorial score, then name.');
+          parts.push('Your rating, then editorial, then name.');
         } else if (sortMode === 'combined') {
-          parts.push('Sorted by editorial + your rating (unrated counts as 0), then name.');
+          parts.push('Editorial + yours (0 if unrated), then name.');
         } else if (sortMode === 'nearest' && loc) {
-          parts.push('Sorted by straight-line distance from your location (approximate).');
+          parts.push('Distance from you.');
         }
-        el.textContent = parts.join(' ');
+        el.textContent = parts.join(' · ');
       }
 
       function wireToolbar() {
@@ -833,7 +805,6 @@
         var btn = document.getElementById('btn-use-location');
         function onChange() {
           persistUi();
-          lastFitKey = '';
           render();
         }
         if (boroEl) boroEl.addEventListener('change', onChange);
@@ -855,7 +826,6 @@
                 btn.setAttribute('aria-pressed', 'true');
                 var nearestOpt = document.getElementById('sort-nearest-option');
                 if (nearestOpt) nearestOpt.disabled = false;
-                lastFitKey = '';
                 persistUi();
                 render();
               },
@@ -883,9 +853,6 @@
         var ordered = sortedStudios(filtered, scores, sortMode, userLocation);
         updateRankRationale(sortMode, userLocation, ordered.length);
 
-        var fitKey = u.boro + '|' + u.typ + '|' + sortMode + '|' + ordered.map(function (s) { return s.id; }).join(',');
-        if (userLocation) fitKey += '|loc';
-
         var ul = document.getElementById('studio-list');
         ul.replaceChildren();
 
@@ -904,8 +871,8 @@
 
           var edBadge = document.createElement('span');
           edBadge.className = 'editorial-badge';
-          edBadge.textContent = 'Editorial ' + editorialFor(studio) + '/5';
-          edBadge.title = 'Curated score in app data, not an official studio rating';
+          edBadge.textContent = editorialFor(studio) + '/5';
+          edBadge.title = 'Editorial score from app data';
 
           titleRow.appendChild(h3);
           titleRow.appendChild(edBadge);
@@ -915,14 +882,14 @@
           meta.className = 'meta';
           var metaBits = [studio.neighborhood];
           if (studio.priceBand) metaBits.push(studio.priceBand);
-          if (studio.lastVerified) metaBits.push('Data: ' + studio.lastVerified);
+          if (studio.lastVerified) metaBits.push(studio.lastVerified);
           meta.textContent = metaBits.join(' · ');
           main.appendChild(meta);
 
           if (userLocation && typeof studio.lat === 'number' && typeof studio.lng === 'number') {
             var distP = document.createElement('p');
             distP.className = 'meta';
-            distP.textContent = '~' + distanceFor(studio, userLocation).toFixed(1) + ' mi straight-line from you';
+            distP.textContent = '~' + distanceFor(studio, userLocation).toFixed(1) + ' mi from you';
             main.appendChild(distP);
           }
 
@@ -948,7 +915,7 @@
             also.forEach(function (mod) {
               var chip = document.createElement('span');
               chip.className = 'chip';
-              chip.textContent = 'Also: ' + (TYPE_LABELS[mod] || mod);
+              chip.textContent = TYPE_LABELS[mod] || mod;
               chipRow.appendChild(chip);
             });
             main.appendChild(chipRow);
@@ -958,16 +925,16 @@
           details.className = 'card-details';
 
           var hSub = document.createElement('h4');
-          hSub.textContent = 'Subway / access hint';
+          hSub.textContent = 'Transit';
           details.appendChild(hSub);
           var subwayP = document.createElement('p');
           subwayP.className = 'subway';
-          subwayP.textContent = studio.subwayNotes || 'Use a map app for the closest train.';
+          subwayP.textContent = studio.subwayNotes || 'Check a map app for trains.';
           details.appendChild(subwayP);
 
           var bring = defaultWhatToBring(studio);
-          appendBringList(details, 'Usually required', bring.required);
-          appendBringList(details, 'Recommended', bring.recommended);
+          appendBringList(details, 'Required', bring.required);
+          appendBringList(details, 'Suggested', bring.recommended);
           appendBringList(details, 'Optional', bring.optional);
           if (bring.notes) {
             var note = document.createElement('p');
@@ -978,14 +945,14 @@
 
           var confirm = document.createElement('p');
           confirm.className = 'muted-small';
-          confirm.textContent = 'Always confirm what to bring and studio rules on their official booking page or FAQ.';
+          confirm.textContent = 'Confirm details on the studio site before you book.';
           details.appendChild(confirm);
 
           var mapA = document.createElement('a');
           mapA.href = mapsSearchUrl(studio);
           mapA.target = '_blank';
           mapA.rel = 'noopener noreferrer';
-          mapA.textContent = 'Search in Google Maps';
+          mapA.textContent = 'Google Maps';
           mapA.style.display = 'inline-block';
           mapA.style.marginTop = '0.5rem';
           mapA.style.fontSize = '0.85rem';
@@ -998,12 +965,12 @@
 
           var lbl = document.createElement('label');
           lbl.setAttribute('for', 'score-' + studio.id);
-          lbl.textContent = 'Your score';
+          lbl.textContent = 'Rate';
           wrap.appendChild(lbl);
 
           var sel = document.createElement('select');
           sel.id = 'score-' + studio.id;
-          sel.setAttribute('aria-label', 'Score for ' + studio.name + ' (1 worst, 5 best)');
+          sel.setAttribute('aria-label', 'Rating for ' + studio.name + ' (1–5)');
 
           ;[
             { v: '0', t: '—' },
@@ -1033,8 +1000,6 @@
           li.appendChild(wrap);
           ul.appendChild(li);
         });
-
-        updateMap(ordered, scores, userLocation, fitKey);
       }
 
       function showLoadError(message, commandText) {
@@ -1047,10 +1012,6 @@
         }
         el.classList.add('visible');
       }
-
-      window.addEventListener('resize', function () {
-        if (map) map.invalidateSize();
-      });
 
       fetch(DATA_URL)
         .then(function (r) {
