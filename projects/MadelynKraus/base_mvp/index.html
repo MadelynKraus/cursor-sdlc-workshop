@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pilates Picks NYC</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin="">
   <style>
     :root {
       --bg: #f6f3ef;
@@ -15,6 +18,14 @@
       --border: #e7e5e4;
       --brooklyn: #1e3a5f;
       --manhattan: #44403c;
+      --lagree: #7c2d12;
+      --lagree-bg: #ffedd5;
+      --reformer: #1e3a5f;
+      --reformer-bg: #e0e7ef;
+      --mat: #365314;
+      --mat-bg: #ecfccb;
+      --both: #6b21a8;
+      --both-bg: #f3e8ff;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -29,9 +40,9 @@
       align-items: center;
     }
     header {
-      max-width: 42rem;
+      max-width: 56rem;
       width: 100%;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.25rem;
       text-align: center;
     }
     h1 {
@@ -46,7 +57,7 @@
     }
     #load-error {
       display: none;
-      max-width: 42rem;
+      max-width: 56rem;
       width: 100%;
       background: #fef2f2;
       border: 1px solid #fecaca;
@@ -71,16 +82,78 @@
     #app {
       display: none;
       width: 100%;
-      max-width: 42rem;
+      max-width: 56rem;
     }
     #app.ready { display: block; }
+    .app-grid {
+      display: grid;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (min-width: 900px) {
+      .app-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .map-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+    }
+    .map-panel h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 0.75rem 1rem 0;
+    }
+    #map {
+      height: min(42vh, 320px);
+      width: 100%;
+      min-height: 220px;
+      margin-top: 0.5rem;
+    }
+    @media (min-width: 900px) {
+      #map {
+        height: min(65vh, 480px);
+        min-height: 360px;
+      }
+    }
+    .map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      padding: 0.65rem 1rem 0.85rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .map-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .map-legend i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .map-legend .lg-m { background: var(--manhattan); border: 1px solid #292524; }
+    .map-legend .lg-b { background: var(--brooklyn); border: 1px solid #0f172a; }
+    .map-hint {
+      padding: 0 1rem 0.85rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .list-panel { min-width: 0; }
     .list {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      max-width: 42rem;
-      margin: 0 auto;
     }
     .card {
       background: var(--card);
@@ -95,7 +168,7 @@
       box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
     }
     .card-main { flex: 1; min-width: 12rem; }
-    .card h2 {
+    .card h3 {
       font-size: 1.05rem;
       font-weight: 600;
       margin-bottom: 0.25rem;
@@ -103,6 +176,12 @@
     .meta {
       font-size: 0.85rem;
       color: var(--muted);
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.45rem;
     }
     .borough {
       display: inline-block;
@@ -112,7 +191,6 @@
       letter-spacing: 0.04em;
       padding: 0.2rem 0.5rem;
       border-radius: 6px;
-      margin-top: 0.45rem;
     }
     .borough.manhattan {
       background: #f5f5f4;
@@ -122,6 +200,18 @@
       background: #e0e7ef;
       color: var(--brooklyn);
     }
+    .type-pill {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+    }
+    .type-pill.lagree { background: var(--lagree-bg); color: var(--lagree); }
+    .type-pill.reformer { background: var(--reformer-bg); color: var(--reformer); }
+    .type-pill.mat { background: var(--mat-bg); color: var(--mat); }
+    .type-pill.both { background: var(--both-bg); color: var(--both); }
     .score-wrap {
       display: flex;
       flex-direction: column;
@@ -151,34 +241,70 @@
       outline-offset: 2px;
     }
     .hint {
-      margin-top: 1.5rem;
+      margin-top: 1.25rem;
       font-size: 0.8rem;
       color: var(--muted);
-      max-width: 42rem;
       text-align: center;
     }
+    .leaflet-container { font-family: inherit; }
   </style>
 </head>
 <body>
   <header>
     <h1>Pilates Picks NYC</h1>
-    <p class="lede">Manhattan &amp; Brooklyn studios only. Rate each studio from <strong>1</strong> (worst) to <strong>5</strong> (best); your list re-sorts with favorites on top. Scores are saved in this browser.</p>
+    <p class="lede">Manhattan &amp; Brooklyn studios only. Each listing shows <strong>format</strong> (Lagree, Reformer, Mat, or both). Rate studios 1–5; your list re-sorts with favorites on top. Use the map for approximate locations—confirm with the studio before you go.</p>
   </header>
 
   <div id="load-error" role="alert"></div>
   <div id="app" aria-live="polite">
-    <ul class="list" id="studio-list"></ul>
+    <div class="app-grid">
+      <section class="map-panel" aria-labelledby="map-heading">
+        <h2 id="map-heading">Studio map</h2>
+        <div id="map" role="application" aria-label="Map of pilates studios in Manhattan and Brooklyn"></div>
+        <div class="map-legend" aria-hidden="true">
+          <span><i class="lg-m" aria-hidden="true"></i> Manhattan</span>
+          <span><i class="lg-b" aria-hidden="true"></i> Brooklyn</span>
+        </div>
+        <p class="map-hint">Pins are neighborhood-level placeholders for this demo, not exact storefronts. © OpenStreetMap contributors.</p>
+      </section>
+      <div class="list-panel">
+        <ul class="list" id="studio-list"></ul>
+      </div>
+    </div>
     <p class="hint"><strong>5 = best, 1 = worst.</strong> Higher scores float up. Same score? Sorted A–Z by studio name. Unrated studios stay at the bottom.</p>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     (function () {
       var STORAGE_KEY = 'pilates-picks-nyc-scores-v1';
       var DATA_URL = 'data/studios.json';
 
-      /** @type {{ id: string, name: string, neighborhood: string, borough: string }[]} */
+      var TYPE_LABELS = {
+        lagree: 'Lagree',
+        reformer: 'Reformer',
+        mat: 'Mat',
+        both: 'Both (multi-format)'
+      };
+
+      /** @type {{ id: string, name: string, neighborhood: string, borough: string, pilatesType?: string, lat?: number, lng?: number }[]} */
       var studios = [];
       var originalIndex = {};
+      var map = null;
+      var markerLayer = null;
+      var mapDidFit = false;
+
+      function normalizeType(raw) {
+        var t = (raw || '').toLowerCase();
+        if (t === 'lagree') return 'lagree';
+        if (t === 'mat') return 'mat';
+        if (t === 'both') return 'both';
+        return 'reformer';
+      }
+
+      function typeLabel(studio) {
+        return TYPE_LABELS[normalizeType(studio.pilatesType)] || TYPE_LABELS.reformer;
+      }
 
       function getScores() {
         try {
@@ -219,6 +345,96 @@
         });
       }
 
+      function mapsSearchUrl(studio) {
+        var q = studio.name + ' ' + studio.neighborhood + ' ' + studio.borough + ' pilates';
+        return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+      }
+
+      function buildPopupContent(studio, scores) {
+        var wrap = document.createElement('div');
+        wrap.style.minWidth = '10rem';
+        wrap.style.maxWidth = '14rem';
+
+        var title = document.createElement('strong');
+        title.textContent = studio.name;
+        title.style.display = 'block';
+        title.style.marginBottom = '0.25rem';
+        wrap.appendChild(title);
+
+        var sub = document.createElement('div');
+        sub.style.fontSize = '0.8rem';
+        sub.style.color = '#57534e';
+        sub.textContent = studio.neighborhood + ' · ' + typeLabel(studio);
+        wrap.appendChild(sub);
+
+        var sc = scoreFor(studio.id, scores);
+        var scoreLine = document.createElement('div');
+        scoreLine.style.fontSize = '0.8rem';
+        scoreLine.style.marginTop = '0.35rem';
+        scoreLine.textContent = sc ? ('Your score: ' + sc + ' / 5') : 'Your score: —';
+        wrap.appendChild(scoreLine);
+
+        var a = document.createElement('a');
+        a.href = mapsSearchUrl(studio);
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = 'Open in Maps';
+        a.style.display = 'inline-block';
+        a.style.marginTop = '0.5rem';
+        a.style.fontSize = '0.85rem';
+        wrap.appendChild(a);
+
+        return wrap;
+      }
+
+      function markerStyle(studio) {
+        var isBk = studio.borough === 'Brooklyn';
+        return {
+          radius: 8,
+          color: isBk ? '#0f172a' : '#292524',
+          weight: 2,
+          fillColor: isBk ? '#1e3a5f' : '#4a6741',
+          fillOpacity: 0.88
+        };
+      }
+
+      function initMap() {
+        if (typeof L === 'undefined' || map) return;
+        map = L.map('map', { scrollWheelZoom: false });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer">OpenStreetMap</a>'
+        }).addTo(map);
+        markerLayer = L.layerGroup().addTo(map);
+        map.setView([40.73, -73.98], 11);
+      }
+
+      function updateMap(ordered, scores) {
+        if (typeof L === 'undefined') return;
+        initMap();
+        if (!markerLayer) return;
+        markerLayer.clearLayers();
+        var bounds = [];
+
+        ordered.forEach(function (studio) {
+          var lat = typeof studio.lat === 'number' ? studio.lat : null;
+          var lng = typeof studio.lng === 'number' ? studio.lng : null;
+          if (lat == null || lng == null) return;
+          var cm = L.circleMarker([lat, lng], markerStyle(studio));
+          cm.bindPopup(buildPopupContent(studio, scores));
+          cm.addTo(markerLayer);
+          bounds.push([lat, lng]);
+        });
+
+        if (bounds.length && map && !mapDidFit) {
+          map.fitBounds(bounds, { padding: [28, 28], maxZoom: 12 });
+          mapDidFit = true;
+        }
+        setTimeout(function () {
+          if (map) map.invalidateSize();
+        }, 0);
+      }
+
       function render() {
         var scores = getScores();
         var ordered = sortedStudios(studios, scores);
@@ -232,19 +448,29 @@
           var main = document.createElement('div');
           main.className = 'card-main';
 
-          var h2 = document.createElement('h2');
-          h2.textContent = studio.name;
-          main.appendChild(h2);
+          var h3 = document.createElement('h3');
+          h3.textContent = studio.name;
+          main.appendChild(h3);
 
           var meta = document.createElement('p');
           meta.className = 'meta';
           meta.textContent = studio.neighborhood;
           main.appendChild(meta);
 
-          var badge = document.createElement('span');
-          badge.className = 'borough ' + (studio.borough === 'Brooklyn' ? 'brooklyn' : 'manhattan');
-          badge.textContent = studio.borough;
-          main.appendChild(badge);
+          var badges = document.createElement('div');
+          badges.className = 'badges';
+
+          var borough = document.createElement('span');
+          borough.className = 'borough ' + (studio.borough === 'Brooklyn' ? 'brooklyn' : 'manhattan');
+          borough.textContent = studio.borough;
+          badges.appendChild(borough);
+
+          var typePill = document.createElement('span');
+          typePill.className = 'type-pill ' + normalizeType(studio.pilatesType);
+          typePill.textContent = typeLabel(studio);
+          badges.appendChild(typePill);
+
+          main.appendChild(badges);
 
           var wrap = document.createElement('div');
           wrap.className = 'score-wrap';
@@ -286,6 +512,8 @@
           li.appendChild(wrap);
           ul.appendChild(li);
         });
+
+        updateMap(ordered, scores);
       }
 
       function showLoadError(message, commandText) {
@@ -298,6 +526,10 @@
         }
         el.classList.add('visible');
       }
+
+      window.addEventListener('resize', function () {
+        if (map) map.invalidateSize();
+      });
 
       fetch(DATA_URL)
         .then(function (r) {
