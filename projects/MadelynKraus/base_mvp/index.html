@@ -117,36 +117,58 @@
       padding-top: 0.35rem;
       border-top: 1px solid var(--border);
     }
+    .neighborhood-details {
+      position: relative;
+      width: min(100%, 32rem);
+      z-index: 10;
+    }
     .neighborhood-details summary {
       cursor: pointer;
-      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      min-width: min(100%, 18rem);
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fffef8;
+      font-size: 0.88rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
+      color: var(--text);
       list-style: none;
     }
     .neighborhood-details summary::-webkit-details-marker { display: none; }
-    .neighborhood-details summary::before {
-      content: '▸ ';
+    .neighborhood-details summary::after {
+      content: '▾';
       display: inline-block;
       transition: transform 0.15s ease;
     }
-    .neighborhood-details[open] summary::before { transform: rotate(90deg); }
+    .neighborhood-details[open] summary::after { transform: rotate(180deg); }
     .neighborhood-panel-inner {
-      margin-top: 0.65rem;
+      position: absolute;
+      top: calc(100% + 0.35rem);
+      left: 0;
+      width: min(100%, 32rem);
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      box-shadow: 0 10px 28px rgba(15, 36, 25, 0.16);
       display: flex;
       flex-direction: column;
       gap: 0.65rem;
     }
-    .neighborhood-quick,
+    .neighborhood-help {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
     .neighborhood-filter-row {
       display: flex;
       flex-wrap: wrap;
       align-items: flex-end;
       gap: 0.5rem 0.75rem;
     }
-    .neighborhood-quick label,
     .neighborhood-filter-row label {
       font-size: 0.78rem;
       font-weight: 600;
@@ -156,7 +178,6 @@
       width: 100%;
       margin-bottom: 0;
     }
-    .neighborhood-quick input[type="text"],
     .neighborhood-filter-row input[type="search"] {
       font: inherit;
       font-size: 0.95rem;
@@ -168,12 +189,10 @@
       min-width: min(100%, 12rem);
       flex: 1;
     }
-    .neighborhood-quick input:focus,
     .neighborhood-filter-row input:focus {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
-    .neighborhood-quick button,
     .neighborhood-actions button {
       font: inherit;
       font-size: 0.88rem;
@@ -185,7 +204,6 @@
       color: var(--text);
       cursor: pointer;
     }
-    .neighborhood-quick button:hover,
     .neighborhood-actions button:hover {
       background: var(--card);
       border-color: var(--accent);
@@ -242,6 +260,11 @@
     .neighborhood-checkboxes label.neighborhood-option.hidden-nb {
       display: none;
     }
+    .nb-count {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .neighborhood-filter-inner { flex: 1; }
     .toolbar label {
       font-size: 0.78rem;
       font-weight: 600;
@@ -494,10 +517,9 @@
         <div class="field">
           <label for="sort-mode">Sort</label>
           <select id="sort-mode" aria-label="Sort studios">
-            <option value="editorial">Editorial</option>
-            <option value="my">Mine</option>
-            <option value="combined">Combined</option>
-            <option value="nearest" id="sort-nearest-option" disabled>Nearest</option>
+            <option value="alpha">Alphabetically</option>
+            <option value="nearest" id="sort-nearest-option">Closest to my location</option>
+            <option value="my">My rating</option>
           </select>
         </div>
         <div class="field">
@@ -507,21 +529,12 @@
       </div>
       <div class="neighborhood-toolbar">
         <details class="neighborhood-details" id="neighborhood-details">
-          <summary id="neighborhood-summary" aria-live="polite">Neighborhoods · all areas</summary>
+          <summary id="neighborhood-summary" aria-live="polite">Neighborhoods · All areas</summary>
           <div class="neighborhood-panel-inner">
-            <div class="neighborhood-quick">
-              <div style="flex: 1 1 100%;">
-                <label for="neighborhood-quick-input">Add by name</label>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
-                  <input type="text" id="neighborhood-quick-input" list="neighborhood-datalist" placeholder="e.g. SoHo, Park Slope…" autocomplete="off" aria-label="Type a neighborhood to add to filter" />
-                  <datalist id="neighborhood-datalist"></datalist>
-                  <button type="button" id="neighborhood-quick-add">Add</button>
-                </div>
-              </div>
-            </div>
+            <p class="neighborhood-help">Choose one or more neighborhoods that have studios listed.</p>
             <div class="neighborhood-filter-row">
-              <div style="flex: 1;">
-                <label for="neighborhood-search">Filter checkbox list</label>
+              <div class="neighborhood-filter-inner">
+                <label for="neighborhood-search">Search neighborhoods</label>
                 <input type="search" id="neighborhood-search" placeholder="Narrow the list…" aria-label="Filter neighborhood checkbox list" />
               </div>
             </div>
@@ -544,7 +557,7 @@
     <footer class="site-footer">
       <details>
         <summary>About this app</summary>
-        <p>Discovery only—not medical advice. Verify addresses, transit, and class rules on each studio’s site. Listings include optional <strong>lastVerified</strong> in data. Maps search opens Google Maps; not affiliated with Google or studios.</p>
+        <p>Discovery only—not medical advice. Maps search opens Google Maps; not affiliated with Google or studios.</p>
       </details>
     </footer>
   </div>
@@ -575,6 +588,8 @@
       var studios = [];
       var originalIndex = {};
       var userLocation = null;
+      var locationStatus = '';
+      var isRequestingLocation = false;
       var neighborhoodList = [];
 
       function normalizeType(raw) {
@@ -610,11 +625,123 @@
         return true;
       }
 
-      function filterStudios(list, boro, typ) {
+      function filterStudios(list, boro, typ, hoods) {
+        var useHoods = Array.isArray(hoods) && hoods.length > 0;
         return list.filter(function (s) {
           if (boro !== 'all' && s.borough !== boro) return false;
-          return studioMatchesFormatFilter(s, typ);
+          if (!studioMatchesFormatFilter(s, typ)) return false;
+          if (useHoods) {
+            var n = s.neighborhood != null ? String(s.neighborhood) : '';
+            if (hoods.indexOf(n) < 0) return false;
+          }
+          return true;
         });
+      }
+
+      function uniqueNeighborhoodsFromStudios(list) {
+        var seen = {};
+        var out = [];
+        list.forEach(function (s) {
+          var n = s.neighborhood != null ? String(s.neighborhood) : '';
+          if (n && !seen[n]) {
+            seen[n] = true;
+            out.push(n);
+          }
+        });
+        out.sort(function (a, b) {
+          return a.localeCompare(b, undefined, { sensitivity: 'base' });
+        });
+        return out;
+      }
+
+      function getSelectedNeighborhoods() {
+        var box = document.getElementById('neighborhood-checkboxes');
+        if (!box) return [];
+        var out = [];
+        var inputs = box.querySelectorAll('input[type="checkbox"][data-neighborhood]');
+        for (var i = 0; i < inputs.length; i++) {
+          if (inputs[i].checked) out.push(inputs[i].getAttribute('data-neighborhood'));
+        }
+        return out;
+      }
+
+      function setNeighborhoodChecks(names) {
+        var box = document.getElementById('neighborhood-checkboxes');
+        if (!box || !Array.isArray(names)) return;
+        var set = {};
+        names.forEach(function (n) {
+          set[n] = true;
+        });
+        var inputs = box.querySelectorAll('input[data-neighborhood]');
+        for (var i = 0; i < inputs.length; i++) {
+          var nb = inputs[i].getAttribute('data-neighborhood');
+          inputs[i].checked = !!set[nb];
+        }
+        updateNeighborhoodSummary();
+      }
+
+      function updateNeighborhoodSummary() {
+        var el = document.getElementById('neighborhood-summary');
+        if (!el) return;
+        var sel = getSelectedNeighborhoods();
+        if (!sel.length) {
+          el.textContent = 'Neighborhoods · All areas';
+          return;
+        }
+        var preview = sel.slice(0, 2).join(', ');
+        if (sel.length > 2) preview += ' +' + String(sel.length - 2) + ' more';
+        el.textContent = 'Neighborhoods · ' + String(sel.length) + ' selected (' + preview + ')';
+      }
+
+      function countStudiosInNeighborhood(nb) {
+        var count = 0;
+        studios.forEach(function (s) {
+          var n = s.neighborhood != null ? String(s.neighborhood) : '';
+          if (n === nb) count += 1;
+        });
+        return count;
+      }
+
+      function applyNeighborhoodSearchFilter() {
+        var qEl = document.getElementById('neighborhood-search');
+        var q = (qEl && qEl.value ? qEl.value : '').trim().toLowerCase();
+        var box = document.getElementById('neighborhood-checkboxes');
+        if (!box) return;
+        var labels = box.querySelectorAll('label.neighborhood-option');
+        for (var i = 0; i < labels.length; i++) {
+          var lab = labels[i];
+          var span = lab.querySelector('.nb-label-text');
+          var t = (span && span.textContent ? span.textContent : '').toLowerCase();
+          if (!q || t.indexOf(q) >= 0) lab.classList.remove('hidden-nb');
+          else lab.classList.add('hidden-nb');
+        }
+      }
+
+      function buildNeighborhoodUi() {
+        neighborhoodList = uniqueNeighborhoodsFromStudios(studios);
+        var box = document.getElementById('neighborhood-checkboxes');
+        if (box) {
+          box.replaceChildren();
+          neighborhoodList.forEach(function (nb, idx) {
+            var lab = document.createElement('label');
+            lab.className = 'neighborhood-option';
+            var inp = document.createElement('input');
+            inp.type = 'checkbox';
+            inp.setAttribute('data-neighborhood', nb);
+            inp.id = 'nb-chk-' + String(idx);
+            var span = document.createElement('span');
+            span.className = 'nb-label-text';
+            span.textContent = nb;
+            var countSpan = document.createElement('span');
+            countSpan.className = 'nb-count';
+            countSpan.textContent = '(' + String(countStudiosInNeighborhood(nb)) + ')';
+            lab.appendChild(inp);
+            lab.appendChild(span);
+            lab.appendChild(countSpan);
+            box.appendChild(lab);
+          });
+        }
+        updateNeighborhoodSummary();
       }
 
       function getScores() {
@@ -675,8 +802,9 @@
       }
 
       function sortedStudios(list, scores, sortMode, loc) {
-        var mode = sortMode || 'editorial';
-        if (mode === 'nearest' && !loc) mode = 'editorial';
+        var mode = sortMode || 'alpha';
+        if (mode === 'editorial' || mode === 'combined') mode = 'alpha';
+        if (mode === 'nearest' && !loc) mode = 'alpha';
 
         return list.slice().sort(function (a, b) {
           if (mode === 'nearest' && loc) {
@@ -689,16 +817,8 @@
             var sa = scoreFor(a.id, scores);
             var sb = scoreFor(b.id, scores);
             if (sb !== sa) return sb - sa;
-            if (editorialFor(b) !== editorialFor(a)) return editorialFor(b) - editorialFor(a);
             return nameCmp(a, b);
           }
-          if (mode === 'combined') {
-            var ca = editorialFor(a) + scoreFor(a.id, scores);
-            var cb = editorialFor(b) + scoreFor(b.id, scores);
-            if (cb !== ca) return cb - ca;
-            return nameCmp(a, b);
-          }
-          if (editorialFor(b) !== editorialFor(a)) return editorialFor(b) - editorialFor(a);
           return nameCmp(a, b);
         });
       }
@@ -721,7 +841,6 @@
         } else {
           o.required = ['grip_socks'];
           o.recommended = ['water', 'towel'];
-          o.notes = 'Most reformer studios require grip socks.';
         }
         if (studio.whatToBringNotes) {
           o.notes = o.notes ? o.notes + ' ' + studio.whatToBringNotes : studio.whatToBringNotes;
@@ -743,8 +862,14 @@
         container.appendChild(ul);
       }
 
+      function studioLocationText(studio) {
+        if (studio.locationLabel != null) return String(studio.locationLabel);
+        if (studio.neighborhood != null) return String(studio.neighborhood);
+        return '';
+      }
+
       function mapsSearchUrl(studio) {
-        var q = studio.name + ' ' + studio.neighborhood + ' ' + studio.borough + ' pilates';
+        var q = studio.name + ' ' + studioLocationText(studio) + ' ' + studio.borough + ' pilates';
         return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
       }
 
@@ -755,7 +880,8 @@
         return {
           boro: boroEl ? boroEl.value : 'all',
           typ: typeEl ? typeEl.value : 'all',
-          sort: sortEl ? sortEl.value : 'editorial'
+          sort: sortEl ? sortEl.value : 'alpha',
+          neighborhoods: getSelectedNeighborhoods()
         };
       }
 
@@ -765,6 +891,7 @@
           localStorage.setItem(STORAGE_SORT, u.sort);
           localStorage.setItem(STORAGE_BORO, u.boro);
           localStorage.setItem(STORAGE_TYPE, u.typ);
+          localStorage.setItem(STORAGE_HOODS, JSON.stringify(u.neighborhoods));
         } catch (e) { /* ignore */ }
       }
 
@@ -773,27 +900,131 @@
           var s = localStorage.getItem(STORAGE_SORT);
           var b = localStorage.getItem(STORAGE_BORO);
           var t = localStorage.getItem(STORAGE_TYPE);
+          var h = localStorage.getItem(STORAGE_HOODS);
           var sortEl = document.getElementById('sort-mode');
           var boroEl = document.getElementById('filter-borough');
           var typeEl = document.getElementById('filter-type');
-          if (s && sortEl) sortEl.value = s;
+          if (s && sortEl) {
+            if (s !== 'alpha' && s !== 'nearest' && s !== 'my') s = 'alpha';
+            sortEl.value = s;
+            try {
+              if (localStorage.getItem(STORAGE_SORT) !== s) localStorage.setItem(STORAGE_SORT, s);
+            } catch (e2) { /* ignore */ }
+          }
           if (b && boroEl) boroEl.value = b;
           if (t && typeEl) typeEl.value = t;
+          if (h) {
+            var parsed = JSON.parse(h);
+            if (Array.isArray(parsed)) {
+              var valid = parsed.filter(function (name) {
+                return neighborhoodList.indexOf(name) >= 0;
+              });
+              setNeighborhoodChecks(valid);
+            }
+          }
         } catch (e) { /* ignore */ }
+      }
+
+      function setLocationButtonState() {
+        var btn = document.getElementById('btn-use-location');
+        if (!btn) return;
+        if (isRequestingLocation) {
+          btn.setAttribute('aria-busy', 'true');
+          btn.textContent = 'Finding location...';
+        } else {
+          btn.setAttribute('aria-busy', 'false');
+          btn.textContent = userLocation ? 'Location on' : 'My location';
+        }
+        if (userLocation) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        } else {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        }
+      }
+
+      function locationErrorMessage(err) {
+        if (err && err.code === 1) {
+          return 'Location permission was denied. Allow location for this site in your browser or system privacy settings, then try again.';
+        }
+        if (err && err.code === 2) {
+          return 'Your device could not determine a position right now. Try again in a moment.';
+        }
+        if (err && err.code === 3) {
+          return 'Location request timed out. Try again when your device has a stronger signal.';
+        }
+        return 'Could not read your location. Check browser permissions and try again.';
+      }
+
+      function requestUserLocation(onSuccess) {
+        if (userLocation) {
+          locationStatus = 'Location is ready.';
+          setLocationButtonState();
+          if (onSuccess) onSuccess(userLocation);
+          else render();
+          return;
+        }
+        if (isRequestingLocation) {
+          locationStatus = 'Requesting your location...';
+          render();
+          return;
+        }
+        if (typeof window.isSecureContext !== 'undefined' && !window.isSecureContext) {
+          locationStatus = 'Location needs a secure preview. Open the app at http://127.0.0.1:8765/ instead of file://.';
+          setLocationButtonState();
+          render();
+          return;
+        }
+        if (!navigator.geolocation) {
+          locationStatus = 'Geolocation is not available in this browser.';
+          setLocationButtonState();
+          render();
+          return;
+        }
+
+        isRequestingLocation = true;
+        locationStatus = 'Requesting your location...';
+        setLocationButtonState();
+        render();
+        navigator.geolocation.getCurrentPosition(
+          function (pos) {
+            isRequestingLocation = false;
+            userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            locationStatus = 'Location ready. Sorting by closest studio.';
+            setLocationButtonState();
+            if (onSuccess) onSuccess(userLocation);
+            else render();
+          },
+          function (err) {
+            isRequestingLocation = false;
+            locationStatus = locationErrorMessage(err);
+            setLocationButtonState();
+            render();
+          },
+          { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }
+        );
       }
 
       function updateRankRationale(sortMode, loc, count) {
         var el = document.getElementById('rank-rationale');
         if (!el) return;
         var parts = [count + ' studio' + (count === 1 ? '' : 's')];
-        if (sortMode === 'editorial') {
-          parts.push('Editorial score, then name.');
+        var hoods = getSelectedNeighborhoods();
+        if (hoods.length) {
+          parts.push('Neighborhood filter: ' + hoods.length + ' area' + (hoods.length === 1 ? '' : 's'));
+        }
+        if (sortMode === 'alpha') {
+          parts.push('Studio name A–Z.');
         } else if (sortMode === 'my') {
-          parts.push('Your rating, then editorial, then name.');
-        } else if (sortMode === 'combined') {
-          parts.push('Editorial + yours (0 if unrated), then name.');
+          parts.push('Your rating (high to low), then name A–Z.');
         } else if (sortMode === 'nearest' && loc) {
-          parts.push('Distance from you.');
+          parts.push('Distance from you (closest first), then name A–Z.');
+        } else if (sortMode === 'nearest') {
+          parts.push(locationStatus || 'Choose My location to sort by distance.');
+        }
+        if (locationStatus && sortMode !== 'nearest') {
+          parts.push(locationStatus);
         }
         el.textContent = parts.join(' · ');
       }
@@ -803,53 +1034,86 @@
         var typeEl = document.getElementById('filter-type');
         var sortEl = document.getElementById('sort-mode');
         var btn = document.getElementById('btn-use-location');
+        var nbDetails = document.getElementById('neighborhood-details');
+        var nbSummary = document.getElementById('neighborhood-summary');
+        var nbBox = document.getElementById('neighborhood-checkboxes');
+        var nbSearch = document.getElementById('neighborhood-search');
+        var nbClear = document.getElementById('neighborhood-clear');
         function onChange() {
           persistUi();
           render();
         }
         if (boroEl) boroEl.addEventListener('change', onChange);
         if (typeEl) typeEl.addEventListener('change', onChange);
-        if (sortEl) sortEl.addEventListener('change', onChange);
+        if (sortEl) {
+          sortEl.addEventListener('change', function () {
+            if (sortEl.value === 'nearest' && !userLocation) {
+              persistUi();
+              requestUserLocation(function () {
+                sortEl.value = 'nearest';
+                persistUi();
+                render();
+              });
+              return;
+            }
+            if (sortEl.value !== 'nearest') locationStatus = '';
+            onChange();
+          });
+        }
+
+        if (nbDetails) {
+          document.addEventListener('click', function (ev) {
+            if (!nbDetails.contains(ev.target)) nbDetails.removeAttribute('open');
+          });
+          nbDetails.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape') {
+              nbDetails.removeAttribute('open');
+              if (nbSummary) nbSummary.focus();
+            }
+          });
+        }
+        if (nbBox) {
+          nbBox.addEventListener('change', function () {
+            updateNeighborhoodSummary();
+            persistUi();
+            render();
+          });
+        }
+        if (nbSearch) {
+          nbSearch.addEventListener('input', function () {
+            applyNeighborhoodSearchFilter();
+          });
+        }
+        if (nbClear) {
+          nbClear.addEventListener('click', function () {
+            setNeighborhoodChecks([]);
+            if (nbSearch) nbSearch.value = '';
+            applyNeighborhoodSearchFilter();
+            persistUi();
+            render();
+          });
+        }
 
         if (btn) {
           btn.addEventListener('click', function () {
-            if (!navigator.geolocation) {
-              window.alert('Geolocation is not available in this browser.');
-              return;
-            }
-            btn.setAttribute('aria-busy', 'true');
-            navigator.geolocation.getCurrentPosition(
-              function (pos) {
-                btn.setAttribute('aria-busy', 'false');
-                userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                btn.classList.add('active');
-                btn.setAttribute('aria-pressed', 'true');
-                var nearestOpt = document.getElementById('sort-nearest-option');
-                if (nearestOpt) nearestOpt.disabled = false;
-                persistUi();
-                render();
-              },
-              function () {
-                btn.setAttribute('aria-busy', 'false');
-                window.alert('Could not read your location. Check browser permissions and try again.');
-              },
-              { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 }
-            );
+            if (sortEl) sortEl.value = 'nearest';
+            persistUi();
+            requestUserLocation(function () {
+              if (sortEl) sortEl.value = 'nearest';
+              persistUi();
+              render();
+            });
           });
         }
+        setLocationButtonState();
       }
 
       function render() {
         var scores = getScores();
         var u = getUiState();
         var sortMode = u.sort;
-        if (sortMode === 'nearest' && !userLocation) {
-          sortMode = 'editorial';
-          var sortElFix = document.getElementById('sort-mode');
-          if (sortElFix) sortElFix.value = 'editorial';
-        }
 
-        var filtered = filterStudios(studios, u.boro, u.typ);
+        var filtered = filterStudios(studios, u.boro, u.typ, u.neighborhoods);
         var ordered = sortedStudios(filtered, scores, sortMode, userLocation);
         updateRankRationale(sortMode, userLocation, ordered.length);
 
@@ -880,9 +1144,9 @@
 
           var meta = document.createElement('p');
           meta.className = 'meta';
-          var metaBits = [studio.neighborhood];
+          var locationText = studioLocationText(studio);
+          var metaBits = locationText ? [locationText] : [];
           if (studio.priceBand) metaBits.push(studio.priceBand);
-          if (studio.lastVerified) metaBits.push(studio.lastVerified);
           meta.textContent = metaBits.join(' · ');
           main.appendChild(meta);
 
@@ -942,11 +1206,6 @@
             note.textContent = bring.notes;
             details.appendChild(note);
           }
-
-          var confirm = document.createElement('p');
-          confirm.className = 'muted-small';
-          confirm.textContent = 'Confirm details on the studio site before you book.';
-          details.appendChild(confirm);
 
           var mapA = document.createElement('a');
           mapA.href = mapsSearchUrl(studio);
@@ -1024,9 +1283,11 @@
           studios.forEach(function (s, i) {
             originalIndex[s.id] = i;
           });
+          buildNeighborhoodUi();
           document.getElementById('app').classList.add('ready');
           restoreUi();
           wireToolbar();
+          applyNeighborhoodSearchFilter();
           render();
         })
         .catch(function () {

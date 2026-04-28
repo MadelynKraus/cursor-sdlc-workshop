@@ -9,8 +9,7 @@
     "lng": -73.9971,
     "editorialScore": 5,
     "priceBand": "$$",
-    "subwayNotes": "Broadway-Lafayette (B/D/F/M) or Spring St (C/E); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Broadway-Lafayette (B/D/F/M) or Spring St (C/E)."
   },
   {
     "id": "new-york-pilates-bowery",
@@ -22,8 +21,7 @@
     "lng": -73.9938,
     "editorialScore": 5,
     "priceBand": "$$",
-    "subwayNotes": "Bowery (J/Z) or Bleecker St (6); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Bowery (J/Z) or Bleecker St (6)."
   },
   {
     "id": "new-york-pilates-west-village",
@@ -35,8 +33,7 @@
     "lng": -74.0028,
     "editorialScore": 5,
     "priceBand": "$$",
-    "subwayNotes": "Christopher St (1) or West 4th (A/B/C/D/E/F/M); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Christopher St (1) or West 4th (A/B/C/D/E/F/M)."
   },
   {
     "id": "new-york-pilates-flatiron",
@@ -48,8 +45,7 @@
     "lng": -73.9901,
     "editorialScore": 5,
     "priceBand": "$$",
-    "subwayNotes": "23 St (R/W) or 28 St (6); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "23 St (R/W) or 28 St (6)."
   },
   {
     "id": "real-pilates-nyc-tribeca",
@@ -61,21 +57,19 @@
     "lng": -74.0089,
     "editorialScore": 5,
     "priceBand": "$$",
-    "subwayNotes": "Franklin St (1) or Canal St (A/C/E); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Franklin St (1) or Canal St (A/C/E)."
   },
   {
     "id": "nice-and-tall-midtown",
     "name": "Nice & Tall – Midtown",
-    "neighborhood": "Midtown (original studio, est. 1928)",
+    "neighborhood": "Midtown",
     "borough": "Manhattan",
     "pilatesType": "mat",
     "lat": 40.7545,
     "lng": -73.9835,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "57 St (F) or 7 Av (B/D/E); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "57 St (F) or 7 Av (B/D/E).",
     "whatToBringNotes": "Classical mat-focused; bring your own mat unless the class listing says otherwise."
   },
   {
@@ -88,8 +82,7 @@
     "lng": -73.9982,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "23 St (C/E) or 18 St (1); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "23 St (C/E) or 18 St (1).",
     "alsoOffers": [
       "reformer",
       "mat"
@@ -105,8 +98,7 @@
     "lng": -73.9881,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "28 St (6) or 33 St (6); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "28 St (6) or 33 St (6).",
     "alsoOffers": [
       "reformer",
       "mat"
@@ -122,8 +114,7 @@
     "lng": -73.9468,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "125 St (2/3) or 135 St (2/3); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "125 St (2/3) or 135 St (2/3)."
   },
   {
     "id": "riverview-pilates-upper-west-side",
@@ -135,13 +126,13 @@
     "lng": -73.9751,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "79 St (1) or 86 St (B/C); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "79 St (1) or 86 St (B/C)."
   },
   {
     "id": "club-pilates-manhattan-multi",
     "name": "Club Pilates",
-    "neighborhood": "Multiple Manhattan locations (9 across NYC)",
+    "neighborhood": "Midtown",
+    "locationLabel": "Multiple Manhattan locations (9 across NYC)",
     "borough": "Manhattan",
     "pilatesType": "reformer",
     "lat": 40.7527,
@@ -149,13 +140,13 @@
     "editorialScore": 4,
     "priceBand": "$$",
     "subwayNotes": "Varies by location—pick a site then check trains.",
-    "lastVerified": "2026-04",
     "whatToBringNotes": "Grip socks required at most locations; bring water."
   },
   {
     "id": "solidcore-manhattan-multi",
     "name": "[solidcore]",
-    "neighborhood": "10+ Manhattan locations",
+    "neighborhood": "NoMad",
+    "locationLabel": "10+ Manhattan locations",
     "borough": "Manhattan",
     "pilatesType": "lagree",
     "lat": 40.7482,
@@ -163,21 +154,19 @@
     "editorialScore": 4,
     "priceBand": "$$$",
     "subwayNotes": "Varies by location—pick a site then check trains.",
-    "lastVerified": "2026-04",
     "whatToBringNotes": "Megaformer-style Lagree. Grip socks required; often sold at the desk."
   },
   {
     "id": "dynamic-body-pilates-manhattan",
     "name": "Dynamic Body Pilates",
-    "neighborhood": "Manhattan",
+    "neighborhood": "Midtown",
     "borough": "Manhattan",
     "pilatesType": "both",
     "lat": 40.7614,
     "lng": -73.9776,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "57 St-7 Av (N/Q/R/W) area; verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "57 St-7 Av (N/Q/R/W) area.",
     "alsoOffers": [
       "reformer",
       "mat"
@@ -186,15 +175,15 @@
   {
     "id": "east-river-pilates-williamsburg",
     "name": "East River Pilates – Williamsburg",
-    "neighborhood": "Williamsburg (3 locations)",
+    "neighborhood": "Williamsburg",
+    "locationLabel": "Williamsburg (3 locations)",
     "borough": "Brooklyn",
     "pilatesType": "both",
     "lat": 40.7188,
     "lng": -73.9567,
     "editorialScore": 5,
     "priceBand": "$$",
-    "subwayNotes": "Bedford Av (L) or Marcy Av (J/M/Z); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "Bedford Av (L) or Marcy Av (J/M/Z).",
     "alsoOffers": [
       "reformer",
       "mat"
@@ -210,8 +199,7 @@
     "lng": -73.9662,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "Classon Av (G) or Franklin Av (C/S); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Classon Av (G) or Franklin Av (C/S)."
   },
   {
     "id": "craft-pilates-park-slope",
@@ -223,8 +211,7 @@
     "lng": -73.9781,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "7 Av (F/G) or Union St (R); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "7 Av (F/G) or Union St (R)."
   },
   {
     "id": "club-pilates-park-slope",
@@ -236,9 +223,7 @@
     "lng": -73.9772,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "7 Av (F/G) or Union St (R); verify address.",
-    "lastVerified": "2026-04",
-    "whatToBringNotes": "Grip socks required; bring water."
+    "subwayNotes": "7 Av (F/G) or Union St (R)."
   },
   {
     "id": "good-day-pilates-brooklyn-heights",
@@ -250,8 +235,7 @@
     "lng": -73.9974,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "High St-Brooklyn Bridge (A/C) or Borough Hall (2/3/4/5/R); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "High St-Brooklyn Bridge (A/C) or Borough Hall (2/3/4/5/R).",
     "whatToBringNotes": "Mat-focused sessions; confirm BYO mat on the schedule."
   },
   {
@@ -264,8 +248,7 @@
     "lng": -73.9964,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "High St-Brooklyn Bridge (A/C) or Clark St (2/3); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "High St-Brooklyn Bridge (A/C) or Clark St (2/3)."
   },
   {
     "id": "streamline-pilates-brooklyn-heights",
@@ -277,8 +260,7 @@
     "lng": -73.9954,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "High St-Brooklyn Bridge (A/C) or Borough Hall (2/3/4/5/R); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "High St-Brooklyn Bridge (A/C) or Borough Hall (2/3/4/5/R)."
   },
   {
     "id": "fort-pilates-fort-greene",
@@ -290,8 +272,7 @@
     "lng": -73.974,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "Atlantic Av-Barclays (2/3/4/5/B/D/N/Q/R/W) or Lafayette Av (C); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Atlantic Av-Barclays (2/3/4/5/B/D/N/Q/R/W) or Lafayette Av (C)."
   },
   {
     "id": "pilates-garage-gowanus",
@@ -303,8 +284,7 @@
     "lng": -73.9938,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "Union St (R) or 4 Av-9 St (F/G); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Union St (R) or 4 Av-9 St (F/G)."
   },
   {
     "id": "aline-pilates-carroll-gardens",
@@ -316,8 +296,7 @@
     "lng": -73.9945,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "Carroll St (F/G) or Bergen St (F/G); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Carroll St (F/G) or Bergen St (F/G)."
   },
   {
     "id": "pilates-by-simona-park-slope",
@@ -329,8 +308,7 @@
     "lng": -73.9765,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "7 Av (F/G) or Grand Army Plaza (2/3); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "7 Av (F/G) or Grand Army Plaza (2/3).",
     "alsoOffers": [
       "reformer",
       "mat"
@@ -346,8 +324,7 @@
     "lng": -73.9688,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "Eastern Pkwy-Brooklyn Museum (2/3) or 7 Av (B/Q); verify address.",
-    "lastVerified": "2026-04"
+    "subwayNotes": "Eastern Pkwy-Brooklyn Museum (2/3) or 7 Av (B/Q)."
   },
   {
     "id": "pilates-bklyn-greenpoint",
@@ -359,8 +336,7 @@
     "lng": -73.9542,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "Greenpoint Av (G) or Nassau Av (G); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "Greenpoint Av (G) or Nassau Av (G).",
     "alsoOffers": [
       "reformer",
       "mat"
@@ -376,8 +352,7 @@
     "lng": -73.9825,
     "editorialScore": 4,
     "priceBand": "$$",
-    "subwayNotes": "York St (F) or High St-Brooklyn Bridge (A/C); verify address.",
-    "lastVerified": "2026-04",
+    "subwayNotes": "York St (F) or High St-Brooklyn Bridge (A/C).",
     "whatToBringNotes": "Mat classes—confirm BYO mat for your specific class."
   }
 ]
