@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NYC Pilates Studio Ranker</title>
+  <title>Pilates Picks NYC</title>
   <style>
     :root {
       --bg: #f6f3ef;
@@ -24,10 +24,15 @@
       line-height: 1.5;
       min-height: 100vh;
       padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     header {
       max-width: 42rem;
+      width: 100%;
       margin-bottom: 1.75rem;
+      text-align: center;
     }
     h1 {
       font-size: clamp(1.5rem, 4vw, 2rem);
@@ -42,6 +47,7 @@
     #load-error {
       display: none;
       max-width: 42rem;
+      width: 100%;
       background: #fef2f2;
       border: 1px solid #fecaca;
       color: #7f1d1d;
@@ -62,7 +68,11 @@
       white-space: pre-wrap;
       word-break: break-all;
     }
-    #app { display: none; }
+    #app {
+      display: none;
+      width: 100%;
+      max-width: 42rem;
+    }
     #app.ready { display: block; }
     .list {
       list-style: none;
@@ -70,6 +80,7 @@
       flex-direction: column;
       gap: 0.75rem;
       max-width: 42rem;
+      margin: 0 auto;
     }
     .card {
       background: var(--card);
@@ -144,24 +155,25 @@
       font-size: 0.8rem;
       color: var(--muted);
       max-width: 42rem;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>NYC Pilates Studio Ranker</h1>
-    <p class="lede">Manhattan &amp; Brooklyn studios only. Rate each studio; your list re-sorts with favorites on top. Scores are saved in this browser.</p>
+    <h1>Pilates Picks NYC</h1>
+    <p class="lede">Manhattan &amp; Brooklyn studios only. Rate each studio from <strong>1</strong> (worst) to <strong>5</strong> (best); your list re-sorts with favorites on top. Scores are saved in this browser.</p>
   </header>
 
   <div id="load-error" role="alert"></div>
   <div id="app" aria-live="polite">
     <ul class="list" id="studio-list"></ul>
-    <p class="hint">Higher scores float up. Same score? Sorted A–Z by studio name. Unrated studios stay at the bottom.</p>
+    <p class="hint"><strong>5 = best, 1 = worst.</strong> Higher scores float up. Same score? Sorted A–Z by studio name. Unrated studios stay at the bottom.</p>
   </div>
 
   <script>
     (function () {
-      var STORAGE_KEY = 'nyc-pilates-ranker-scores-v1';
+      var STORAGE_KEY = 'pilates-picks-nyc-scores-v1';
       var DATA_URL = 'data/studios.json';
 
       /** @type {{ id: string, name: string, neighborhood: string, borough: string }[]} */
@@ -244,7 +256,7 @@
 
           var sel = document.createElement('select');
           sel.id = 'score-' + studio.id;
-          sel.setAttribute('aria-label', 'Score for ' + studio.name);
+          sel.setAttribute('aria-label', 'Score for ' + studio.name + ' (1 worst, 5 best)');
 
           ;[
             { v: '0', t: '—' },
@@ -303,8 +315,8 @@
         })
         .catch(function () {
           showLoadError(
-            'Could not load studio data. Browsers often block loading JSON when you open this file as file://. From the base_mvp folder, run a local server and open localhost:',
-            'python3 -m http.server 8765\n\nthen open → http://localhost:8765/'
+            'Could not load studio data. Browsers usually block the studio list when you open this page as a file. From your base_mvp folder, start a small preview server:',
+            'python3 -m http.server 8765\n\nThen open the preview URL in your browser (often http://127.0.0.1:8765/ — your terminal may show the exact link).'
           );
         });
     })();
