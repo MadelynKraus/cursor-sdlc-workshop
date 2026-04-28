@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-**Project Name:** NYC Pilates Studio Ranker
+**Project Name:** Pilates Picks NYC
 
 **One-line Description:** A single-page app for **Manhattan and Brooklyn** pilates studios only: you score each studio and the list re-sorts so your favorites float to the top—all in the browser.
 
